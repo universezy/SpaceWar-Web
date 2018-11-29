@@ -1,3 +1,24 @@
+<template>
+  <div class="div_main">
+    <div class="div_background">
+      <div id="stars"></div>
+      <div id="stars2"></div>
+      <div id="stars3"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Background',
+  data () {
+    return {
+    }
+  }
+}
+</script>
+
+<style scoped>
 .div_background {
     width: 100%;
     height: 100%;
@@ -75,25 +96,4 @@
         transform: translateY(2000px);
     }
 }
-
-#footer {
-    height: 30px;
-    width: 500px;
-    display: block;
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    margin-left: -250px;
-    -webkit-transition-duration: 0.5s;
-    transition-duration: 0.5s;
-    color: rgba(255, 255, 255, 0.3);
-}
-
-.span_footer {
-    text-align: center;
-    font-size: 16px;
-}
-
-footer:hover {
-    color: rgba(255, 255, 255, 0.8);
-}
+</style>
