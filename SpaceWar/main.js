@@ -5,8 +5,10 @@ var screenHeight = canvas.height = window.innerHeight;
 var smallPlaneSize = 20;
 var playerVelocity = 10;
 var playerBulletSize = 5;
-var playerBulletColor = 'rgb(255,140,0)';
+var player1BulletColor = 'rgb(255,140,0)';
+var player2BulletColor = 'rgb(124,252,0)';
 var playerBulletVelocity = 3;
+var playerBulletMaxCount = 20;
 
 var div_main = document.getElementById('div_main');
 var div_menu = document.getElementById('div_menu');
@@ -18,20 +20,22 @@ var footer = document.getElementById('footer');
 var span_level = document.getElementById('span_level');
 var span_hp = document.getElementById('span_hp');
 var span_score = document.getElementById('span_score');
-var img_player = document.getElementById('img_player');
+var img_player1 = document.getElementById('img_player1');
+var img_player2 = document.getElementById('img_player2');
 var minX = 0;
-var maxX = screenWidth - img_player.width;
+var maxX = screenWidth - img_player1.width;
 var minY = 0;
-var maxY = screenHeight - img_player.height;
+var maxY = screenHeight - img_player1.height;
 
-function Player() {
-    this.x = maxX / 2;
-    this.y = maxY;
+function Player(img, x, y) {
+    this.img = img;
+    this.x = x;
+    this.y = y;
     this.velocity = playerVelocity;
 }
 
 Player.prototype.draw = function () {
-    ctx.drawImage(img_player, this.x, this.y);
+    ctx.drawImage(this.img, this.x, this.y);
 };
 
 Player.prototype.move = function (dx, dy) {
@@ -80,29 +84,49 @@ Bullet.prototype.move = function (dx, dy) {
     }
 };
 
-var player = new Player();
-var playerBullet = [];
+var player1 = new Player(img_player1, maxX / 2, maxY);
+var player2 = new Player(img_player2, maxX / 2, 0);
+var player1Bullets = [];
+var player2Bullets = [];
 var handlerId = 0;
 var isGame = false;
+var isBattle = false;
 var state = false;
 
-function playerShot() {
-    var bullet = new Bullet(player.x + img_player.width / 2, player.y, playerBulletSize, playerBulletColor);
-    playerBullet.push(bullet);
+function player1Shot() {
+    if (player1Bullets.length >= playerBulletMaxCount) return;
+    var bullet = new Bullet(player1.x + img_player1.width / 2, player1.y, playerBulletSize, player1BulletColor);
+    player1Bullets.push(bullet);
+}
+
+function player2Shot() {
+    if (player2Bullets.length >= playerBulletMaxCount) return;
+    var bullet = new Bullet(player2.x + img_player1.width / 2, player2.y + img_player2.height, playerBulletSize, player2BulletColor);
+    player2Bullets.push(bullet);
 }
 
 function loop() {
     ctx.clearRect(0, 0, screenWidth, screenHeight);
-    player.draw();
-    for (var i = playerBullet.length - 1; i >= 0; i--) {
-        if (playerBullet[i].show === true) {
-            playerBullet[i].draw();
-            playerBullet[i].move(0, -1);
+    player1.draw();
+    for (var i = player1Bullets.length - 1; i >= 0; i--) {
+        if (player1Bullets[i].show === true) {
+            player1Bullets[i].draw();
+            player1Bullets[i].move(0, -1);
         } else {
-            playerBullet.splice(i, 1);
+            player1Bullets.splice(i, 1);
         }
     }
-    console.log('length = ' + playerBullet.length);
+    if (isBattle) {
+        player2.draw();
+        for (var j = player2Bullets.length - 1; j >= 0; j--) {
+            if (player2Bullets[j].show === true) {
+                player2Bullets[j].draw();
+                player2Bullets[j].move(0, 1);
+            } else {
+                player2Bullets.splice(j, 1);
+            }
+        }
+    }
     handlerId = requestAnimationFrame(loop);
 }
 
@@ -137,17 +161,13 @@ function attachButtonListener() {
         div_main.style.display = 'none';
         footer.style.display = 'none';
         div_menu.style.display = 'block';
-        prepare();
-        start();
     });
 
     button_battle.addEventListener('click', function (event) {
         div_main.style.display = 'none';
         footer.style.display = 'none';
         div_menu.style.display = 'block';
-        prepare();
-        start();
-        // TODO
+        isBattle = true;
     });
 
     button_explain.addEventListener('click', function (event) {
@@ -157,6 +177,7 @@ function attachButtonListener() {
 
 window.onload = function () {
     prepare();
+    start();
 };
 
 window.onkeydown = function (event) {
@@ -167,37 +188,43 @@ window.onkeydown = function (event) {
     } else if (state) {
         switch (event.keyCode) {
             case 87: // W
-                player.move(0, -1);
+                player1.move(0, -1);
                 break;
             case 65: // A
-                player.move(-1, 0);
+                player1.move(-1, 0);
                 break;
             case 83: // S
-                player.move(0, 1);
+                player1.move(0, 1);
                 break;
             case 68: // D
-                player.move(1, 0);
+                player1.move(1, 0);
                 break;
             case 74: // J
-                playerShot();
-                break;
-            case 38: // up
-                // TODO
-                break;
-            case 37: // left
-                // TODO
-                break;
-            case 40: // down
-                // TODO
-                break;
-            case 39: // right
-                // TODO
-                break;
-            case 96: // 0
-                // TODO
+                player1Shot();
                 break;
             default:
                 break;
+        }
+        if (isBattle) {
+            switch (event.keyCode) {
+                case 38: // up
+                    player2.move(0, -1);
+                    break;
+                case 37: // left
+                    player2.move(-1, 0);
+                    break;
+                case 40: // down
+                    player2.move(0, 1);
+                    break;
+                case 39: // right
+                    player2.move(1, 0);
+                    break;
+                case 96: // 0
+                    player2Shot();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 };
