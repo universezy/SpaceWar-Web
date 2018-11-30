@@ -10,7 +10,7 @@
 
 <script>
 export default {
-  name: 'Background',
+  name: 'background',
   data () {
     return {
     }

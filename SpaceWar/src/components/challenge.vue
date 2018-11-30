@@ -3,43 +3,56 @@
   <div class="div_menu">
     <div class="div_item">
       <img class="img_item" src="../assets/level.svg" />
-      <span class="span_item" id="span_level">LEVEL</span>
+      <span class="span_item" id="span_level">{{ level }}</span>
     </div>
 
     <div class="div_item">
       <img class="img_item" src="../assets/hp.svg" />
-      <span class="span_item" id="span_hp">HP</span>
+      <span class="span_item" id="span_hp">{{ hp }}</span>
     </div>
 
     <div class="div_item">
       <img class="img_item" src="../assets/score.svg" />
-      <span class="span_item" id="span_score">SCORE</span>
+      <span class="span_item" id="span_score">{{ score }}</span>
     </div>
   </div>
   <canvas id="canvas_game">
     <img class="img_plane" id="img_player" src="../assets/player.svg" />
   </canvas>
-  <Background></Background>
+  <background></background>
 </div>
 </template>
 
 <script>
-import Background from './Background.vue'
+import background from './background.vue'
 
 export default {
-  name: 'Challenge',
-  create () {
-    var spanLevel = document.getElementById('span_level')
-    var spanHp = document.getElementById('span_hp')
-    var spanScore = document.getElementById('span_score')
-    var imgPlayer = document.getElementById('img_player')
+  name: 'challenge',
+  components: {
+    background
   },
   data () {
     return {
+      level: 0,
+      hp: 1000,
+      score: 0
     }
   },
-  components: {
-    Background
+  mounted () {
+  },
+  methods: {
+    setLevel: function (level) {
+      this.level = level
+    },
+    addHp: function (hp) {
+      this.hp += hp
+      if (this.hp < 0) {
+        this.hp = 0
+      }
+    },
+    addScore: function (score) {
+      this.score += score
+    }
   }
 }
 </script>
@@ -91,4 +104,7 @@ export default {
     color: #FFFF00;
 }
 
+#canvas_game{
+    z-index: -1;
+}
 </style>

@@ -11,7 +11,7 @@
 
 <script>
 export default {
-  name: 'Game',
+  name: 'game-alert',
   data () {
     return {
     }
@@ -45,9 +45,5 @@ export default {
     font-family: sans-serif, Arial, Helvetica;
     font-size: 40px;
     color: #000;
-}
-
-#canvas_game {
-    z-index: -1;
 }
 </style>

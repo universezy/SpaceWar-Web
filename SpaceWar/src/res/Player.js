@@ -1,12 +1,9 @@
-import mCanvas from './Canvas'
-
-var canvas = new mCanvas.Canvas()
-
 const PlayerConst = {
   playerVelocity: 3
 }
 
-function Player (x, y, velocity, img) {
+function Player (canvas, x, y, velocity, img) {
+  this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
   this.velocity = velocity
@@ -18,7 +15,7 @@ function Player (x, y, velocity, img) {
 }
 
 Player.prototype.draw = function () {
-  canvas.ctx.drawImage(this.img, this.x, this.y)
+  this.ctx.drawImage(this.img, this.x, this.y)
 }
 
 Player.prototype.move = function (dx, dy) {

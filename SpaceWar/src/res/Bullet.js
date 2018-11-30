@@ -1,7 +1,3 @@
-import mCanvas from './Canvas'
-
-var canvas = new mCanvas.Canvas()
-
 const BulletConst = {
   playerVelocity: 3,
   playeSize: 5,
@@ -10,7 +6,8 @@ const BulletConst = {
   playerMaxCount: 20
 }
 
-function Bullet (x, y, size, color, velocity, img) {
+function Bullet (canvas, x, y, size, color, velocity, img) {
+  this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
   this.size = size
@@ -24,10 +21,10 @@ function Bullet (x, y, size, color, velocity, img) {
 }
 
 Bullet.prototype.draw = function () {
-  canvas.ctx.beginPath()
-  canvas.ctx.fillStyle = this.color
-  canvas.ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
-  canvas.ctx.fill()
+  this.ctx.beginPath()
+  this.ctx.fillStyle = this.color
+  this.ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
+  this.ctx.fill()
 }
 
 Bullet.prototype.move = function (dx, dy) {

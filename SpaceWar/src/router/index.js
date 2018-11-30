@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Main from '@/components/Main'
-import Battle from '@/components/Battle'
-import Challenge from '@/components/Challenge'
+import home from '@/components/home'
+import battle from '@/components/battle'
+import challenge from '@/components/challenge'
 
 Vue.use(Router)
 
@@ -10,18 +10,18 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Main',
-      component: Main
+      name: 'home',
+      component: home
     },
     {
-      path: '/Battle',
-      name: 'Battle',
-      component: Battle
+      path: '/battle',
+      name: 'battle',
+      component: battle
     },
     {
-      path: '/Challenge',
-      name: 'Challenge',
-      component: Challenge
+      path: '/challenge',
+      name: 'challenge',
+      component: challenge
     }
   ]
 })
