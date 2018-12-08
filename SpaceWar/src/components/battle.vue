@@ -1,25 +1,28 @@
 <template>
 <div>
-  <gameAlert v-show="isPause"></gameAlert>
   <canvas id="canvas_game">
     <img class="img_plane" id="img_player1" src="../assets/player.svg" />
     <img class="img_plane" id="img_player2" src="../assets/player2.png" />
   </canvas>
-  <background></background>
+  <alertCom v-show="isPause"></alertCom>
+  <menuCom></menuCom>
+  <backgroundCom></backgroundCom>
 </div>
 </template>
 
 <script>
-import gameAlert from './game-alert.vue'
-import background from './background.vue'
+import menuCom from './component-menu.vue'
+import alertCom from './component-alert.vue'
+import backgroundCom from './component-background.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
 
 export default {
   name: 'battle',
   components: {
-    gameAlert,
-    background
+    menuCom,
+    alertCom,
+    backgroundCom
   },
   data () {
     return {
@@ -44,24 +47,28 @@ export default {
   },
   methods: {
     prepare: function () {
+      this.prepareEnv()
+      this.prepareSrc()
+    },
+    prepareEnv: function () {
       this.canvas = document.getElementById('canvas_game')
       this.ctx = this.canvas.getContext('2d')
       this.screenWidth = this.canvas.width = window.innerWidth
       this.screenHeight = this.canvas.height = window.innerHeight
+    },
+    prepareSrc: function () {
       this.imgPlayer1 = document.getElementById('img_player1')
       this.imgPlayer2 = document.getElementById('img_player2')
       this.player1 = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2 - this.imgPlayer1.width / 2,
         this.screenHeight - this.imgPlayer1.height,
-        mPlayer.PlayerConst.playerVelocity,
         this.imgPlayer1
       )
       this.player2 = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2 - this.imgPlayer2.width / 2,
         0,
-        mPlayer.PlayerConst.playerVelocity,
         this.imgPlayer2
       )
     },
@@ -146,28 +153,24 @@ export default {
       }
     },
     playerShot1: function () {
-      if (this.playerBullets1.length < mBullet.BulletConst.playerMaxCount) {
+      if (this.playerBullets1.length < mBullet.BulletConsts.maxCount) {
         var bullet = new mBullet.Bullet(
           this.canvas,
           this.player1.x + this.imgPlayer1.width / 2,
           this.player1.y,
-          mBullet.BulletConst.playeSize,
-          mBullet.BulletConst.playerColor1,
-          mBullet.BulletConst.playerVelocity,
+          mBullet.BulletConsts.color1,
           this.imgPlayer1
         )
         this.playerBullets1.push(bullet)
       }
     },
     playerShot2: function () {
-      if (this.playerBullets2.length < mBullet.BulletConst.playerMaxCount) {
+      if (this.playerBullets2.length < mBullet.BulletConsts.maxCount) {
         var bullet = new mBullet.Bullet(
           this.canvas,
           this.player2.x + this.imgPlayer2.width / 2,
           this.player2.y + this.imgPlayer2.height,
-          mBullet.BulletConst.playeSize,
-          mBullet.BulletConst.playerColor2,
-          mBullet.BulletConst.playerVelocity,
+          mBullet.BulletConsts.color2,
           this.imgPlayer2
         )
         this.playerBullets2.push(bullet)

@@ -10,7 +10,7 @@
 
 <script>
 export default {
-  name: 'background',
+  name: 'component-background',
   data () {
     return {
     }

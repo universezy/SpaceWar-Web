@@ -19,13 +19,14 @@
     <footer id="footer">
       <span class="span_footer">Powered by ZengYu - Copyright &copy;2018 All Rights Reserved</span>
     </footer>
-    <background></background>
+    <aboutCom></aboutCom>
+    <backgroundCom></backgroundCom>
   </div>
 </template>
 
 <script>
-import background from './background.vue'
-import about from './about.vue'
+import backgroundCom from './component-background.vue'
+import aboutCom from './component-about.vue'
 
 export default {
   name: 'home',
@@ -33,8 +34,8 @@ export default {
     return {}
   },
   components: {
-    background,
-    about
+    backgroundCom,
+    aboutCom
   },
   mounted () {
     this.attachListener()
@@ -63,9 +64,10 @@ export default {
 
 <style scoped>
 .div_home {
-  width: auto;
-  position: relative;
-  top: 30%;
+    width: 100%;
+    display: block;
+    position: fixed;
+    top: 30%;
 }
 
 .div_button {
@@ -106,23 +108,22 @@ section {
 
 #footer {
   height: 30px;
-  width: 500px;
+  width: 100%;
   display: block;
-  position: absolute;
+  position: fixed;
   bottom: 10px;
-  left: 50%;
-  margin-left: -250px;
+  align-items: center;
   -webkit-transition-duration: 0.5s;
   transition-duration: 0.5s;
   color: rgba(255, 255, 255, 0.3);
 }
 
+footer:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .span_footer {
   text-align: center;
   font-size: 16px;
-}
-
-footer:hover {
-  color: rgba(255, 255, 255, 0.8);
 }
 </style>

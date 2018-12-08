@@ -11,7 +11,7 @@
 
 <script>
 export default {
-  name: 'game-alert',
+  name: 'component-alert',
   data () {
     return {
     }
@@ -23,17 +23,17 @@ export default {
 #div_alert {
     width: 100%;
     display: block;
-    position: absolute;
-    top: 30%;
+    position: fixed;
+    top: 40%;
     align-items: center;
     z-index: 9999;
 }
 
 #div_alert_container {
     width: 500px;
-    margin: 0 auto;
-    padding: 50px 20px;
-    position: relative;
+    display: block;
+    padding: 10px;
+    margin: auto;
     align-items: center;
     background: #ffffff;
     border-radius: 15px;

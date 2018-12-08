@@ -1,18 +1,20 @@
-const BulletConst = {
-  playerVelocity: 3,
-  playeSize: 5,
-  playerColor1: 'rgb(255,140,0)',
-  playerColor2: 'rgb(124,252,0)',
-  playerMaxCount: 20
+const BulletConsts = {
+  color1: 'rgb(255,140,0)',
+  color2: 'rgb(124,252,0)',
+  size: 5,
+  attack: 50,
+  velocity: 5,
+  maxCount: 20
 }
 
-function Bullet (canvas, x, y, size, color, velocity, img) {
+function Bullet (canvas, x, y, color, img) {
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
-  this.size = size
   this.color = color
-  this.velocity = velocity
+  this.size = BulletConsts.size
+  this.attack = BulletConsts.attack
+  this.velocity = BulletConsts.velocity
   this.minX = 0
   this.maxX = canvas.screenWidth - img.width
   this.minY = 0
@@ -43,6 +45,6 @@ Bullet.prototype.move = function (dx, dy) {
 }
 
 export default {
-  BulletConst,
+  BulletConsts,
   Bullet
 }

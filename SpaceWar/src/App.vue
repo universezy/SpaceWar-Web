@@ -22,5 +22,14 @@ export default {
 html {
     min-width: 600px;
     min-height: 800px;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
 }
 </style>

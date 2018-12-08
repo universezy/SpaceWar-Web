@@ -1,12 +1,14 @@
-const PlayerConst = {
-  playerVelocity: 3
+const PlayerConsts = {
+  hp: 1000,
+  velocity: 5
 }
 
-function Player (canvas, x, y, velocity, img) {
+function Player (canvas, x, y, img) {
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
-  this.velocity = velocity
+  this.hp = PlayerConsts.hp
+  this.velocity = PlayerConsts.velocity
   this.img = img
   this.minX = 0
   this.maxX = canvas.screenWidth - img.width
@@ -34,6 +36,6 @@ Player.prototype.move = function (dx, dy) {
 }
 
 export default {
-  PlayerConst,
+  PlayerConsts,
   Player
 }

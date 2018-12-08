@@ -5,7 +5,7 @@
 
 <script>
 export default {
-  name: 'about',
+  name: 'component-about',
   data () {
     return {
     }
