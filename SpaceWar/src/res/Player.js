@@ -7,32 +7,64 @@ function Player (canvas, x, y, img) {
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
+  this.img = img
   this.hp = PlayerConsts.hp
   this.velocity = PlayerConsts.velocity
-  this.img = img
   this.minX = 0
-  this.maxX = canvas.screenWidth - img.width
+  this.maxX = canvas.width
   this.minY = 0
-  this.maxY = canvas.screenHeight - img.height
+  this.maxY = canvas.height
+  this.mvUp = false
+  this.mvDown = false
+  this.mvLeft = false
+  this.mvRight = false
+}
+
+Player.prototype.update = function () {
+  if (this.mvUp) {
+    this.y -= this.velocity
+    if (this.y < this.minY) {
+      this.y = this.minY
+    }
+  }
+  if (this.mvDown) {
+    this.y += this.velocity
+    if (this.y > this.maxY) {
+      this.y = this.maxY
+    }
+  }
+  if (this.mvLeft) {
+    this.x -= this.velocity
+    if (this.x < this.minX) {
+      this.x = this.minX
+    }
+  }
+  if (this.mvRight) {
+    this.x += this.velocity
+    if (this.x > this.maxX) {
+      this.x = this.maxX
+    }
+  }
 }
 
 Player.prototype.draw = function () {
-  this.ctx.drawImage(this.img, this.x, this.y)
+  this.ctx.drawImage(this.img, this.x - this.img.width / 2, this.y - this.img.height / 2)
 }
 
-Player.prototype.move = function (dx, dy) {
-  this.x += dx * this.velocity
-  if (this.x < this.minX) {
-    this.x = this.minX
-  } else if (this.x > this.maxX) {
-    this.x = this.maxX
-  }
-  this.y += dy * this.velocity
-  if (this.y < this.minY) {
-    this.y = this.minY
-  } else if (this.y > this.maxY) {
-    this.y = this.maxY
-  }
+Player.prototype.setUp = function (status) {
+  this.mvUp = status
+}
+
+Player.prototype.setDown = function (status) {
+  this.mvDown = status
+}
+
+Player.prototype.setLeft = function (status) {
+  this.mvLeft = status
+}
+
+Player.prototype.setRight = function (status) {
+  this.mvRight = status
 }
 
 export default {

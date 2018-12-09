@@ -41,16 +41,17 @@ export default {
   },
   data () {
     return {
-      level: 0,
-      hp: 0,
-      score: 0,
       canvas: null,
       ctx: null,
       screenWidth: 0,
       screenHeight: 0,
+      level: 0,
+      hp: 0,
+      score: 0,
       imgPlayer: null,
       player: null,
       playerBullets: [],
+      isShotting: false,
       handlerId: 0,
       isPause: true
     }
@@ -61,18 +62,6 @@ export default {
     this.start()
   },
   methods: {
-    setLevel: function (level) {
-      this.level = level
-    },
-    updateHp: function (hp) {
-      this.hp += hp
-      if (this.hp < 0) {
-        this.hp = 0
-      }
-    },
-    updateScore: function (score) {
-      this.score += score
-    },
     prepare: function () {
       this.prepareEnv()
       this.prepareSrc()
@@ -87,99 +76,139 @@ export default {
       this.imgPlayer = document.getElementById('img_player')
       this.player = new mPlayer.Player(
         this.canvas,
-        this.screenWidth / 2 - this.imgPlayer.width / 2,
-        this.screenHeight - this.imgPlayer.height,
+        this.screenWidth / 2,
+        this.screenHeight - this.imgPlayer.height / 2,
         this.imgPlayer
       )
+      this.hp = this.player.hp
     },
     attachListener: function () {
       if (typeof window.addEventListener !== 'undefined') {
-        window.addEventListener('keydown', this.callbackPlayer)
-        window.addEventListener('keydown', this.callbackControl)
-        window.addEventListener('keydown', this.callbackGame)
+        window.addEventListener('keydown', this.onKeydown)
+        window.addEventListener('keyup', this.onKeyup)
       } else {
         alert('The version of your browser is too low.')
       }
     },
-    callbackPlayer: function (e) {
+    setLevel: function (level) {
+      this.level = level
+    },
+    updateHp: function (hp) {
+      this.hp += hp
+      if (this.hp < 0) {
+        this.hp = 0
+      }
+    },
+    updateScore: function (score) {
+      this.score += score
+    },
+    onKeydown: function (e) {
+      // 兼容Firefox
+      e = e || event
+      let code = e.witch || e.keyCode
+      if (code === 27) { // esc
+        this.changeState()
+      } else if (!this.isPause) {
+        switch (code) {
+          case 74:// j
+            this.isShotting = true
+            break
+          case 87:// w
+            this.player.setUp(true)
+            break
+          case 65:// a
+            this.player.setLeft(true)
+            break
+          case 83:// s
+            this.player.setDown(true)
+            break
+          case 68:// d
+            this.player.setRight(true)
+            break
+          default:
+            break
+        }
+      }
+    },
+    onKeyup: function (e) {
       // 兼容Firefox
       e = e || event
       switch (e.witch || e.keyCode) {
+        case 74:// j
+          this.isShotting = false
+          break
         case 87:// w
-          this.player.move(0, -1)
+          this.player.setUp(false)
           break
         case 65:// a
-          this.player.move(-1, 0)
+          this.player.setLeft(false)
           break
         case 83:// s
-          this.player.move(0, 1)
+          this.player.setDown(false)
           break
         case 68:// d
-          this.player.move(1, 0)
+          this.player.setRight(false)
           break
         default:
           break
       }
     },
-    callbackControl: function (e) {
-      e = e || event
-      switch (e.witch || e.keyCode) {
-        case 74:// j
-          this.playerShot()
-          break
-        default:
-          break
-      }
-    },
-    callbackGame: function (e) {
-      e = e || event
-      switch (e.witch || e.keyCode) {
-        case 27:// esc
-          this.changeState()
-          break
-        default:
-          break
-      }
-    },
-    playerShot: function () {
-      if (this.playerBullets.length < mBullet.BulletConsts.maxCount) {
+    onPlayerShot: function () {
+      if (this.isShotting && this.playerBullets.length < mBullet.BulletConsts.maxCount) {
         var bullet = new mBullet.Bullet(
           this.canvas,
-          this.player.x + this.imgPlayer.width / 2,
-          this.player.y,
-          mBullet.BulletConsts.color1,
-          this.imgPlayer
+          this.player.x,
+          this.player.y - this.imgPlayer.height / 2,
+          0,
+          -1,
+          mBullet.BulletConsts.color1
         )
         this.playerBullets.push(bullet)
       }
     },
-    checkCollision: function () {
-      // TODO
-    },
-    loop: function () {
-      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
-      this.player.draw()
+    onPlayerBullets: function () {
       for (var i = this.playerBullets.length - 1; i >= 0; i--) {
         if (this.playerBullets[i].show === true) {
+          this.playerBullets[i].update()
           this.playerBullets[i].draw()
-          this.playerBullets[i].move(0, -1)
         } else {
           this.playerBullets.splice(i, 1)
         }
       }
+    },
+    loop: function () {
+      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
+      this.player.update()
+      this.player.draw()
+      this.onPlayerShot()
+      this.onPlayerBullets()
       this.handlerId = requestAnimationFrame(this.loop)
+    },
+    checkCollision: function () {
+      // TODO
     },
     changeState: function () {
       if (this.isPause) {
-        this.loop()
-        this.isPause = false
+        this.resume()
       } else {
-        cancelAnimationFrame(this.handlerId)
-        this.isPause = true
+        this.pause()
       }
     },
     start: function () {
       this.isPause = true
+    },
+    pause: function () {
+      cancelAnimationFrame(this.handlerId)
+      this.isShotting = false
+      this.player.setUp(false)
+      this.player.setLeft(false)
+      this.player.setDown(false)
+      this.player.setRight(false)
+      this.isPause = true
+    },
+    resume: function () {
+      this.isPause = false
+      this.loop()
     }
   }
 }
@@ -187,6 +216,7 @@ export default {
 
 <style scoped>
 #canvas_game{
+    width: 100%;
     z-index: -1;
 }
 

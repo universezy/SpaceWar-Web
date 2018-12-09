@@ -3,17 +3,17 @@
     <div class="div_home">
       <div class="div_button" id="button_challenge">
         <img class="img_button" src="../assets/challenge.svg">
-        <section>Challenge</section>
+        <section class="sec_button">Challenge</section>
       </div>
 
       <div class="div_button" id="button_battle">
         <img class="img_button" src="../assets/battle.svg">
-        <section>Battle</section>
+        <section class="sec_button">Battle</section>
       </div>
 
       <div class="div_button" id="button_about">
         <img class="img_button" src="../assets/about.svg">
-        <section>About</section>
+        <section class="sec_button">About</section>
       </div>
     </div>
     <footer id="footer">
@@ -96,7 +96,7 @@ export default {
   height: 50px;
 }
 
-section {
+.sec_button {
   margin: 5px auto;
   align-items: center;
   font-size: 20px;

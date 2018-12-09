@@ -30,12 +30,16 @@ export default {
       ctx: null,
       screenWidth: 0,
       screenHeight: 0,
+      hp1: 0,
+      hp2: 0,
       imgPlayer1: null,
       imgPlayer2: null,
       player1: null,
       player2: null,
-      playerBullets1: [],
-      playerBullets2: [],
+      bullets1: [],
+      bullets2: [],
+      isShotting1: false,
+      isShotting2: false,
       handlerId: 0,
       isPause: true
     }
@@ -61,157 +65,202 @@ export default {
       this.imgPlayer2 = document.getElementById('img_player2')
       this.player1 = new mPlayer.Player(
         this.canvas,
-        this.screenWidth / 2 - this.imgPlayer1.width / 2,
-        this.screenHeight - this.imgPlayer1.height,
+        this.screenWidth / 2,
+        this.screenHeight - this.imgPlayer1.height / 2,
         this.imgPlayer1
       )
       this.player2 = new mPlayer.Player(
         this.canvas,
-        this.screenWidth / 2 - this.imgPlayer2.width / 2,
-        0,
+        this.screenWidth / 2,
+        this.imgPlayer2.height / 2,
         this.imgPlayer2
       )
+      this.hp1 = this.player1.hp
+      this.hp2 = this.player2.hp
     },
     attachListener: function () {
       if (typeof window.addEventListener !== 'undefined') {
-        window.addEventListener('keydown', this.callbackPlayer1)
-        window.addEventListener('keydown', this.callbackPlayer2)
-        window.addEventListener('keydown', this.callbackControl1)
-        window.addEventListener('keydown', this.callbackControl2)
-        window.addEventListener('keydown', this.callbackGame)
+        window.addEventListener('keydown', this.onKeydown)
+        window.addEventListener('keyup', this.onKeyup)
       } else {
         alert('The version of your browser is too low.')
       }
     },
-    callbackPlayer1: function (e) {
+    updateHp1: function (hp) {
+      this.hp1 += hp
+      if (this.hp1 < 0) {
+        this.hp1 = 0
+      }
+    },
+    updateHp2: function (hp) {
+      this.hp2 += hp
+      if (this.hp2 < 0) {
+        this.hp2 = 0
+      }
+    },
+    onKeydown: function (e) {
+      // 兼容Firefox
+      e = e || event
+      let code = e.witch || e.keyCode
+      if (code === 27) { // esc
+        this.changeState()
+      } else if (!this.isPause) {
+        switch (code) {
+          case 70:// f
+            this.isShotting1 = true
+            break
+          case 87:// w
+            this.player1.setUp(true)
+            break
+          case 65:// a
+            this.player1.setLeft(true)
+            break
+          case 83:// s
+            this.player1.setDown(true)
+            break
+          case 68:// d
+            this.player1.setRight(true)
+            break
+          case 191:// /
+            this.isShotting2 = true
+            break
+          case 38:// up
+            this.player2.setUp(true)
+            break
+          case 37:// left
+            this.player2.setLeft(true)
+            break
+          case 40:// down
+            this.player2.setDown(true)
+            break
+          case 39:// right
+            this.player2.setRight(true)
+            break
+          default:
+            break
+        }
+      }
+    },
+    onKeyup: function (e) {
       // 兼容Firefox
       e = e || event
       switch (e.witch || e.keyCode) {
+        case 70:// f
+          this.isShotting1 = false
+          break
         case 87:// w
-          this.player1.move(0, -1)
+          this.player1.setUp(false)
           break
         case 65:// a
-          this.player1.move(-1, 0)
+          this.player1.setLeft(false)
           break
         case 83:// s
-          this.player1.move(0, 1)
+          this.player1.setDown(false)
           break
         case 68:// d
-          this.player1.move(1, 0)
+          this.player1.setRight(false)
           break
-        default:
+        case 191:// /
+          this.isShotting2 = false
           break
-      }
-    },
-    callbackPlayer2: function (e) {
-      e = e || event
-      switch (e.witch || e.keyCode) {
         case 38:// up
-          this.player2.move(0, -1)
+          this.player2.setUp(false)
           break
         case 37:// left
-          this.player2.move(-1, 0)
+          this.player2.setLeft(false)
           break
         case 40:// down
-          this.player2.move(0, 1)
+          this.player2.setDown(false)
           break
         case 39:// right
-          this.player2.move(1, 0)
+          this.player2.setRight(false)
           break
         default:
           break
       }
     },
-    callbackControl1: function (e) {
-      e = e || event
-      switch (e.witch || e.keyCode) {
-        case 74:// j
-          this.playerShot1()
-          break
-        default:
-          break
-      }
-    },
-    callbackControl2: function (e) {
-      e = e || event
-      switch (e.witch || e.keyCode) {
-        case 96:// 0
-          this.playerShot2()
-          break
-        default:
-          break
-      }
-    },
-    callbackGame: function (e) {
-      e = e || event
-      switch (e.witch || e.keyCode) {
-        case 27:// esc
-          this.changeState()
-          break
-        default:
-          break
-      }
-    },
-    playerShot1: function () {
-      if (this.playerBullets1.length < mBullet.BulletConsts.maxCount) {
-        var bullet = new mBullet.Bullet(
+    onShot: function () {
+      if (this.isShotting1 && this.bullets1.length < mBullet.BulletConsts.maxCount) {
+        var bullet1 = new mBullet.Bullet(
           this.canvas,
-          this.player1.x + this.imgPlayer1.width / 2,
-          this.player1.y,
-          mBullet.BulletConsts.color1,
-          this.imgPlayer1
+          this.player1.x,
+          this.player1.y - this.imgPlayer1.height / 2,
+          0,
+          -1,
+          mBullet.BulletConsts.color1
         )
-        this.playerBullets1.push(bullet)
+        this.bullets1.push(bullet1)
+      }
+      if (this.isShotting2 && this.bullets2.length < mBullet.BulletConsts.maxCount) {
+        var bullet2 = new mBullet.Bullet(
+          this.canvas,
+          this.player2.x,
+          this.player2.y + this.imgPlayer2.height / 2,
+          0,
+          1,
+          mBullet.BulletConsts.color2
+        )
+        this.bullets2.push(bullet2)
       }
     },
-    playerShot2: function () {
-      if (this.playerBullets2.length < mBullet.BulletConsts.maxCount) {
-        var bullet = new mBullet.Bullet(
-          this.canvas,
-          this.player2.x + this.imgPlayer2.width / 2,
-          this.player2.y + this.imgPlayer2.height,
-          mBullet.BulletConsts.color2,
-          this.imgPlayer2
-        )
-        this.playerBullets2.push(bullet)
+    onBullets: function () {
+      for (var i = this.bullets1.length - 1; i >= 0; i--) {
+        if (this.bullets1[i].show === true) {
+          this.bullets1[i].update()
+          this.bullets1[i].draw()
+        } else {
+          this.bullets1.splice(i, 1)
+        }
       }
+      for (var j = this.bullets2.length - 1; j >= 0; j--) {
+        if (this.bullets2[j].show === true) {
+          this.bullets2[j].update()
+          this.bullets2[j].draw()
+        } else {
+          this.bullets2.splice(j, 1)
+        }
+      }
+    },
+    loop: function () {
+      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
+      this.player1.update()
+      this.player2.update()
+      this.player1.draw()
+      this.player2.draw()
+      this.onShot()
+      this.onBullets()
+      this.handlerId = requestAnimationFrame(this.loop)
     },
     checkCollision: function () {
       // TODO
     },
-    loop: function () {
-      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
-      this.player1.draw()
-      this.player2.draw()
-      for (var i = this.playerBullets1.length - 1; i >= 0; i--) {
-        if (this.playerBullets1[i].show === true) {
-          this.playerBullets1[i].draw()
-          this.playerBullets1[i].move(0, -1)
-        } else {
-          this.playerBullets1.splice(i, 1)
-        }
-      }
-      for (var j = this.playerBullets2.length - 1; j >= 0; j--) {
-        if (this.playerBullets2[j].show === true) {
-          this.playerBullets2[j].draw()
-          this.playerBullets2[j].move(0, 1)
-        } else {
-          this.playerBullets2.splice(j, 1)
-        }
-      }
-      this.handlerId = requestAnimationFrame(this.loop)
-    },
     changeState: function () {
       if (this.isPause) {
-        this.loop()
-        this.isPause = false
+        this.resume()
       } else {
-        cancelAnimationFrame(this.handlerId)
-        this.isPause = true
+        this.pause()
       }
     },
     start: function () {
       this.isPause = true
+    },
+    pause: function () {
+      cancelAnimationFrame(this.handlerId)
+      this.isShotting1 = false
+      this.isShotting2 = false
+      this.player1.setUp(false)
+      this.player1.setLeft(false)
+      this.player1.setDown(false)
+      this.player1.setRight(false)
+      this.player2.setUp(false)
+      this.player2.setLeft(false)
+      this.player2.setDown(false)
+      this.player2.setRight(false)
+      this.isPause = true
+    },
+    resume: function () {
+      this.isPause = false
+      this.loop()
     }
   }
 }
@@ -219,6 +268,7 @@ export default {
 
 <style scoped>
 #canvas_game{
+    width: 100%;
     z-index: -1;
 }
 </style>
