@@ -1,9 +1,9 @@
 <template>
-<div>
+  <div>
     <div id="div_menu">
-        <img class="img_menu" id="img_home" src="../assets/menu.svg" title="Home Page" @click="clickHome"/>
+      <img class="img_menu" id="img_home" src="../assets/menu.svg" title="Home Page" @click="clickHome" />
     </div>
-</div>
+  </div>
 </template>
 
 <script>

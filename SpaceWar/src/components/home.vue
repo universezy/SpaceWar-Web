@@ -20,12 +20,10 @@
       <span class="span_footer">Powered by ZengYu - Copyright &copy;2018 All Rights Reserved</span>
     </footer>
     <aboutCom></aboutCom>
-    <backgroundCom></backgroundCom>
   </div>
 </template>
 
 <script>
-import backgroundCom from './component-background.vue'
 import aboutCom from './component-about.vue'
 
 export default {
@@ -34,7 +32,6 @@ export default {
     return {}
   },
   components: {
-    backgroundCom,
     aboutCom
   },
   mounted () {
@@ -99,7 +96,7 @@ export default {
 .sec_button {
   margin: 5px auto;
   align-items: center;
-  font-size: 20px;
+  font-size: 24px;
   font-family: sans-serif, Arial, Helvetica;
   word-wrap: break-word;
   -webkit-transition-duration: 0.5s;

@@ -1,19 +1,17 @@
 <template>
-<div>
-  <canvas id="canvas_game">
-    <img class="img_plane" id="img_player1" src="../assets/player.svg" />
-    <img class="img_plane" id="img_player2" src="../assets/player2.png" />
-  </canvas>
-  <alertCom v-show="isPause"></alertCom>
-  <menuCom></menuCom>
-  <backgroundCom></backgroundCom>
-</div>
+  <div>
+    <canvas id="canvas_game">
+      <img class="img_plane" id="img_player1" src="../assets/player.svg" />
+      <img class="img_plane" id="img_player2" src="../assets/player2.png" />
+    </canvas>
+    <alertCom v-show="isPause"></alertCom>
+    <menuCom></menuCom>
+  </div>
 </template>
 
 <script>
 import menuCom from './component-menu.vue'
 import alertCom from './component-alert.vue'
-import backgroundCom from './component-background.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
 
@@ -21,8 +19,7 @@ export default {
   name: 'battle',
   components: {
     menuCom,
-    alertCom,
-    backgroundCom
+    alertCom
   },
   data () {
     return {
@@ -267,8 +264,8 @@ export default {
 </script>
 
 <style scoped>
-#canvas_game{
-    width: 100%;
-    z-index: -1;
+#canvas_game {
+  width: 100%;
+  z-index: -1;
 }
 </style>

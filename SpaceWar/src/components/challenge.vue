@@ -1,34 +1,32 @@
 <template>
-<div>
-  <canvas id="canvas_game">
-    <img class="img_plane" id="img_player" src="../assets/player.svg" />
-  </canvas>
-  <div id="div_infos">
-    <div class="div_info">
-      <img class="img_info" src="../assets/level.svg" />
-      <span class="span_info" id="span_level">{{ level }}</span>
-    </div>
+  <div>
+    <canvas id="canvas_game">
+      <img class="img_plane" id="img_player" src="../assets/player.svg" />
+    </canvas>
+    <div id="div_infos">
+      <div class="div_info">
+        <img class="img_info" src="../assets/level.svg" />
+        <span class="span_info" id="span_level">{{ level }}</span>
+      </div>
 
-    <div class="div_info">
-      <img class="img_info" src="../assets/hp.svg" />
-      <span class="span_info" id="span_hp">{{ hp }}</span>
-    </div>
+      <div class="div_info">
+        <img class="img_info" src="../assets/hp.svg" />
+        <span class="span_info" id="span_hp">{{ hp }}</span>
+      </div>
 
-    <div class="div_info">
-      <img class="img_info" src="../assets/score.svg" />
-      <span class="span_info" id="span_score">{{ score }}</span>
+      <div class="div_info">
+        <img class="img_info" src="../assets/score.svg" />
+        <span class="span_info" id="span_score">{{ score }}</span>
+      </div>
     </div>
+    <alertCom v-show="isPause"></alertCom>
+    <menuCom></menuCom>
   </div>
-  <alertCom v-show="isPause"></alertCom>
-  <menuCom></menuCom>
-  <backgroundCom></backgroundCom>
-</div>
 </template>
 
 <script>
 import menuCom from './component-menu.vue'
 import alertCom from './component-alert.vue'
-import backgroundCom from './component-background.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
 
@@ -36,8 +34,7 @@ export default {
   name: 'challenge',
   components: {
     menuCom,
-    alertCom,
-    backgroundCom
+    alertCom
   },
   data () {
     return {
@@ -215,54 +212,55 @@ export default {
 </script>
 
 <style scoped>
-#canvas_game{
-    width: 100%;
-    z-index: -1;
+#canvas_game {
+  width: 100%;
+  z-index: -1;
 }
 
 #div_infos {
-    display: block;
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    align-items: center;
-    z-index: 9998;
+  display: block;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  align-items: center;
+  z-index: 9998;
 }
 
 .div_info {
-    margin: 10px auto;
-    padding: 3px 6px;
-    width: 100px;
-    height: auto;
-    display: flex;
-    display: -webkit-flex;
-    align-items: center;
-    background-color: rgba(196, 196, 196, 0.3);
-    border-radius: 10px;
-    border: solid rgb(29, 138, 248) 2px;
+  margin: 10px auto;
+  padding: 3px 6px;
+  width: 100px;
+  height: auto;
+  display: flex;
+  display: -webkit-flex;
+  align-items: center;
+  background-color: rgba(196, 196, 196, 0.3);
+  border-radius: 10px;
+  border: solid rgb(29, 138, 248) 2px;
 }
 
 .img_info {
-    width: 25px;
-    height: 25px;
+  width: 25px;
+  height: 25px;
 }
 
 .span_info {
-    margin: 5px auto;
-    align-items: center;
-    font-size: 18px;
-    font-family: sans-serif, Arial, Helvetica;
+  margin: 5px auto;
+  align-items: center;
+  font-size: 18px;
+  font-family: sans-serif, Arial, Helvetica;
+  cursor: default;
 }
 
 #span_level {
-    color: #00ff00;
+  color: #00ff00;
 }
 
 #span_hp {
-    color: #FF0000;
+  color: #FF0000;
 }
 
 #span_score {
-    color: #FFFF00;
+  color: #FFFF00;
 }
 </style>
