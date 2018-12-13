@@ -1,17 +1,17 @@
 <template>
   <div id="app">
     <router-view/>
-    <backgroundCom></backgroundCom>
+    <comBackground></comBackground>
   </div>
 </template>
 
 <script>
-import backgroundCom from './components/component-background.vue'
+import comBackground from './components/component-background.vue'
 
 export default {
   name: 'App',
   components: {
-    backgroundCom
+    comBackground
   },
   created () {
     document.body.parentNode.style.overflow = 'hidden'

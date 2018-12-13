@@ -1,11 +1,6 @@
 <template>
   <div>
-    <div id="div_alert">
-      <div id="div_alert_container">
-        <span class="span_alert">PAUSE</span>
-        <span class="span_alert">Press ESC to resume</span>
-      </div>
-    </div>
+    <div class="div_alert">PAUSE</div>
   </div>
 </template>
 
@@ -20,30 +15,20 @@ export default {
 </script>
 
 <style scoped>
-#div_alert {
-  width: 100%;
-  display: block;
-  position: fixed;
-  top: 40%;
-  align-items: center;
-  z-index: 9999;
-}
-
-#div_alert_container {
-  width: 500px;
-  display: block;
+.div_alert {
+  width: auto;
+  height: auto;
   padding: 10px;
-  margin: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   align-items: center;
-  background: #ffffff;
-  border-radius: 15px;
-}
-
-.span_alert {
-  margin: 10px;
-  display: block;
   font-family: sans-serif, Arial, Helvetica;
   font-size: 40px;
-  color: #000;
+  color: #f78504;
+  background: #ffffff;
+  border-radius: 15px;
+  z-index: 9999;
 }
 </style>

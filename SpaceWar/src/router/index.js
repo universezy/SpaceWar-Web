@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import home from '@/components/home'
 import battle from '@/components/battle'
-import challenge from '@/components/challenge'
+import solo from '@/components/solo'
 
 Vue.use(Router)
 
@@ -19,9 +19,9 @@ export default new Router({
       component: battle
     },
     {
-      path: '/challenge',
-      name: 'challenge',
-      component: challenge
+      path: '/solo',
+      name: 'solo',
+      component: solo
     }
   ]
 })

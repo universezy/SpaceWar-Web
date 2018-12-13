@@ -19,22 +19,22 @@
         <span class="span_info" id="span_score">{{ score }}</span>
       </div>
     </div>
-    <alertCom v-show="isPause"></alertCom>
-    <menuCom></menuCom>
+    <comAlert v-show="isPause"></comAlert>
+    <comMenu></comMenu>
   </div>
 </template>
 
 <script>
-import menuCom from './component-menu.vue'
-import alertCom from './component-alert.vue'
+import comMenu from './component-menu.vue'
+import comAlert from './component-alert.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
 
 export default {
-  name: 'challenge',
+  name: 'solo',
   components: {
-    menuCom,
-    alertCom
+    comMenu,
+    comAlert
   },
   data () {
     return {
@@ -79,14 +79,6 @@ export default {
       )
       this.hp = this.player.hp
     },
-    attachListener: function () {
-      if (typeof window.addEventListener !== 'undefined') {
-        window.addEventListener('keydown', this.onKeydown)
-        window.addEventListener('keyup', this.onKeyup)
-      } else {
-        alert('The version of your browser is too low.')
-      }
-    },
     setLevel: function (level) {
       this.level = level
     },
@@ -98,6 +90,14 @@ export default {
     },
     updateScore: function (score) {
       this.score += score
+    },
+    attachListener: function () {
+      if (typeof window.addEventListener !== 'undefined') {
+        window.addEventListener('keydown', this.onKeydown)
+        window.addEventListener('keyup', this.onKeyup)
+      } else {
+        alert('The version of your browser is too low.')
+      }
     },
     onKeydown: function (e) {
       // 兼容Firefox
@@ -197,10 +197,7 @@ export default {
     pause: function () {
       cancelAnimationFrame(this.handlerId)
       this.isShotting = false
-      this.player.setUp(false)
-      this.player.setLeft(false)
-      this.player.setDown(false)
-      this.player.setRight(false)
+      this.player.resetStates()
       this.isPause = true
     },
     resume: function () {

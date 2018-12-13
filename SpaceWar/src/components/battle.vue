@@ -4,25 +4,41 @@
       <img class="img_plane" id="img_player1" src="../assets/player.svg" />
       <img class="img_plane" id="img_player2" src="../assets/player2.png" />
     </canvas>
-    <alertCom v-show="isPause"></alertCom>
-    <menuCom></menuCom>
+    <div class="div_progress">
+      <Progress class="progress_hp" :percent="hp2" :stroke-width="10" />
+      <Progress class="progress_hp" :percent="hp1" :stroke-width="10" />
+    </div>
+    <comAlert v-show="showAlert"></comAlert>
+    <comMenu></comMenu>
+    <Modal :closable="false" :mask-closable="false" v-model="modalStop">
+      <h1 slot="header" class="h1_modal_stop">Game Over</h1>
+      <div>
+        <p class="p_modal_stop">Player {{playerWin}} wins !</p>
+        <p class="p_modal_stop">Do you want to start a new game?</p>
+      </div>
+      <div slot="footer">
+        <Button type="error" size="large" @click="onClickStopModal(false)">No</Button>
+        <Button type="success" size="large" @click="onClickStopModal(true)">Yes</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script>
-import menuCom from './component-menu.vue'
-import alertCom from './component-alert.vue'
+import comMenu from './component-menu.vue'
+import comAlert from './component-alert.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
 
 export default {
   name: 'battle',
   components: {
-    menuCom,
-    alertCom
+    comMenu,
+    comAlert
   },
   data () {
     return {
+      imgSize: 50,
       canvas: null,
       ctx: null,
       screenWidth: 0,
@@ -38,18 +54,21 @@ export default {
       isShotting1: false,
       isShotting2: false,
       handlerId: 0,
-      isPause: true
+      isPause: true,
+      showAlert: false,
+      modalStop: false,
+      playerWin: 'null'
     }
   },
   mounted () {
     this.prepare()
-    this.attachListener()
-    this.start()
   },
   methods: {
     prepare: function () {
       this.prepareEnv()
       this.prepareSrc()
+      this.isPause = true
+      this.showRule()
     },
     prepareEnv: function () {
       this.canvas = document.getElementById('canvas_game')
@@ -75,24 +94,38 @@ export default {
       this.hp1 = this.player1.hp
       this.hp2 = this.player2.hp
     },
+    updateHp1: function (hp) {
+      if (this.hp1 !== 0) {
+        this.hp1 += hp
+        if (this.hp1 <= 0) {
+          this.hp1 = 0
+          this.player1.show = false
+          this.playerWin = '2'
+          this.stop()
+        } else if (this.hp1 > 100) {
+          this.hp1 = 100
+        }
+      }
+    },
+    updateHp2: function (hp) {
+      if (this.hp2 !== 0) {
+        this.hp2 += hp
+        if (this.hp2 <= 0) {
+          this.hp2 = 0
+          this.player2.show = false
+          this.playerWin = '1'
+          this.stop()
+        } else if (this.hp2 > 100) {
+          this.hp2 = 100
+        }
+      }
+    },
     attachListener: function () {
       if (typeof window.addEventListener !== 'undefined') {
         window.addEventListener('keydown', this.onKeydown)
         window.addEventListener('keyup', this.onKeyup)
       } else {
         alert('The version of your browser is too low.')
-      }
-    },
-    updateHp1: function (hp) {
-      this.hp1 += hp
-      if (this.hp1 < 0) {
-        this.hp1 = 0
-      }
-    },
-    updateHp2: function (hp) {
-      this.hp2 += hp
-      if (this.hp2 < 0) {
-        this.hp2 = 0
       }
     },
     onKeydown: function (e) {
@@ -177,7 +210,7 @@ export default {
       }
     },
     onShot: function () {
-      if (this.isShotting1 && this.bullets1.length < mBullet.BulletConsts.maxCount) {
+      if (this.hp1 > 0 && this.isShotting1 && this.bullets1.length < mBullet.BulletConsts.maxCount) {
         var bullet1 = new mBullet.Bullet(
           this.canvas,
           this.player1.x,
@@ -188,7 +221,7 @@ export default {
         )
         this.bullets1.push(bullet1)
       }
-      if (this.isShotting2 && this.bullets2.length < mBullet.BulletConsts.maxCount) {
+      if (this.hp2 > 0 && this.isShotting2 && this.bullets2.length < mBullet.BulletConsts.maxCount) {
         var bullet2 = new mBullet.Bullet(
           this.canvas,
           this.player2.x,
@@ -205,6 +238,10 @@ export default {
         if (this.bullets1[i].show === true) {
           this.bullets1[i].update()
           this.bullets1[i].draw()
+          if (this.checkCollision(this.bullets1[i].x, this.bullets1[i].y, this.player2.x, this.player2.y)) {
+            this.bullets1[i].show = false
+            this.updateHp2(0 - this.bullets1[i].attack)
+          }
         } else {
           this.bullets1.splice(i, 1)
         }
@@ -213,6 +250,10 @@ export default {
         if (this.bullets2[j].show === true) {
           this.bullets2[j].update()
           this.bullets2[j].draw()
+          if (this.checkCollision(this.bullets2[i].x, this.bullets2[i].y, this.player1.x, this.player1.y)) {
+            this.bullets2[i].show = false
+            this.updateHp1(0 - this.bullets2[i].attack)
+          }
         } else {
           this.bullets2.splice(j, 1)
         }
@@ -226,38 +267,84 @@ export default {
       this.player2.draw()
       this.onShot()
       this.onBullets()
+      this.checkCollision()
       this.handlerId = requestAnimationFrame(this.loop)
     },
-    checkCollision: function () {
-      // TODO
-    },
-    changeState: function () {
-      if (this.isPause) {
-        this.resume()
+    checkCollision: function (x1, y1, x2, y2) {
+      let distance = (this.imgSize + mBullet.BulletConsts.size) / 2
+      let deltaX = x1 - x2
+      let deltaY = y1 - y2
+      if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) > Math.pow(distance, 2)) {
+        return false
       } else {
-        this.pause()
+        return true
       }
     },
+    changeState: function () {
+      if (!this.modalStop) {
+        if (this.isPause) {
+          this.resume()
+        } else {
+          this.pause()
+        }
+      }
+    },
+    showRule: function () {
+      let title = 'Rule'
+      let content = '<p>1. Attack each other.</p><p>2. The game ends when the player\'s HP return to 0.</p><p>3. Press ESC to pause or continue game.</p>'
+      let _this = this
+      this.$Modal.info({
+        title: title,
+        content: content,
+        okText: 'OK',
+        onOk: () => {
+          _this.start()
+        }
+      })
+    },
     start: function () {
-      this.isPause = true
+      this.attachListener()
+      this.changeState()
     },
     pause: function () {
+      this.showAlert = true
       cancelAnimationFrame(this.handlerId)
       this.isShotting1 = false
       this.isShotting2 = false
-      this.player1.setUp(false)
-      this.player1.setLeft(false)
-      this.player1.setDown(false)
-      this.player1.setRight(false)
-      this.player2.setUp(false)
-      this.player2.setLeft(false)
-      this.player2.setDown(false)
-      this.player2.setRight(false)
+      this.player1.resetStates()
+      this.player2.resetStates()
       this.isPause = true
     },
     resume: function () {
+      this.showAlert = false
       this.isPause = false
       this.loop()
+    },
+    stop: function () {
+      cancelAnimationFrame(this.handlerId)
+      this.isShotting1 = false
+      this.isShotting2 = false
+      this.player1.resetStates()
+      this.player2.resetStates()
+      this.isPause = true
+      setTimeout(() => {
+        this.modalStop = true
+      }, 2000)
+    },
+    reset: function () {
+      this.hp1 = this.player1.hp
+      this.hp2 = this.player2.hp
+      this.player1.resetCoord()
+      this.player2.resetCoord()
+      this.bullets1 = []
+      this.bullets2 = []
+    },
+    onClickStopModal: function (choose) {
+      this.modalStop = false
+      if (choose) {
+        this.reset()
+      }
+      this.changeState()
     }
   }
 }
@@ -267,5 +354,35 @@ export default {
 #canvas_game {
   width: 100%;
   z-index: -1;
+}
+
+.div_progress {
+  width: auto;
+  height: auto;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+.progress_hp {
+  width: 200px;
+  margin: 5px 0;
+  display: block;
+  font-size: 16px;
+  color: #ff0000;
+  opacity: 0.7;
+}
+
+.h1_modal_stop{
+  color:#2d8cf0;
+  text-align:center;
+  font-size: 30px;
+}
+
+.p_modal_stop{
+  margin: 10px;
+  font-size: 20px;
+  text-align: center;
 }
 </style>

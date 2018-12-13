@@ -1,5 +1,5 @@
 const PlayerConsts = {
-  hp: 1000,
+  hp: 100,
   velocity: 5
 }
 
@@ -10,6 +10,8 @@ function Player (canvas, x, y, img) {
   this.img = img
   this.hp = PlayerConsts.hp
   this.velocity = PlayerConsts.velocity
+  this.originX = x
+  this.originY = y
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0
@@ -18,6 +20,9 @@ function Player (canvas, x, y, img) {
   this.mvDown = false
   this.mvLeft = false
   this.mvRight = false
+  this.show = true
+  this.explose = new Image()
+  this.explose.src = '../assets/explose.svg'
 }
 
 Player.prototype.update = function () {
@@ -48,6 +53,9 @@ Player.prototype.update = function () {
 }
 
 Player.prototype.draw = function () {
+  if (!this.show) {
+    this.img = this.explose
+  }
   this.ctx.drawImage(this.img, this.x - this.img.width / 2, this.y - this.img.height / 2)
 }
 
@@ -65,6 +73,18 @@ Player.prototype.setLeft = function (status) {
 
 Player.prototype.setRight = function (status) {
   this.mvRight = status
+}
+
+Player.prototype.resetStates = function () {
+  this.mvUp = false
+  this.mvDown = false
+  this.mvLeft = false
+  this.mvRight = false
+}
+
+Player.prototype.resetCoord = function () {
+  this.x = this.originX
+  this.y = this.originY
 }
 
 export default {
