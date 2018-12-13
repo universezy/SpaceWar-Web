@@ -3,6 +3,7 @@
     <canvas id="canvas_game">
       <img class="img_plane" id="img_player1" src="../assets/player.svg" />
       <img class="img_plane" id="img_player2" src="../assets/player2.png" />
+      <img class="img_plane" id="img_explose" src="../assets/explose.svg" />
     </canvas>
     <div class="div_progress">
       <Progress class="progress_hp" :percent="hp2" :stroke-width="10" />
@@ -47,6 +48,7 @@ export default {
       hp2: 0,
       imgPlayer1: null,
       imgPlayer2: null,
+      imgExplose: null,
       player1: null,
       player2: null,
       bullets1: [],
@@ -55,6 +57,7 @@ export default {
       isShotting2: false,
       handlerId: 0,
       isPause: true,
+      isEnd: false,
       showAlert: false,
       modalStop: false,
       playerWin: 'null'
@@ -79,17 +82,20 @@ export default {
     prepareSrc: function () {
       this.imgPlayer1 = document.getElementById('img_player1')
       this.imgPlayer2 = document.getElementById('img_player2')
+      this.imgExplose = document.getElementById('img_explose')
       this.player1 = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.screenHeight - this.imgPlayer1.height / 2,
-        this.imgPlayer1
+        this.imgPlayer1,
+        this.imgExplose
       )
       this.player2 = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.imgPlayer2.height / 2,
-        this.imgPlayer2
+        this.imgPlayer2,
+        this.imgExplose
       )
       this.hp1 = this.player1.hp
       this.hp2 = this.player2.hp
@@ -151,7 +157,7 @@ export default {
           case 68:// d
             this.player1.setRight(true)
             break
-          case 191:// /
+          case 76:// l
             this.isShotting2 = true
             break
           case 38:// up
@@ -190,7 +196,7 @@ export default {
         case 68:// d
           this.player1.setRight(false)
           break
-        case 191:// /
+        case 76:// l
           this.isShotting2 = false
           break
         case 38:// up
@@ -250,9 +256,9 @@ export default {
         if (this.bullets2[j].show === true) {
           this.bullets2[j].update()
           this.bullets2[j].draw()
-          if (this.checkCollision(this.bullets2[i].x, this.bullets2[i].y, this.player1.x, this.player1.y)) {
-            this.bullets2[i].show = false
-            this.updateHp1(0 - this.bullets2[i].attack)
+          if (this.checkCollision(this.bullets2[j].x, this.bullets2[j].y, this.player1.x, this.player1.y)) {
+            this.bullets2[j].show = false
+            this.updateHp1(0 - this.bullets2[j].attack)
           }
         } else {
           this.bullets2.splice(j, 1)
@@ -260,6 +266,7 @@ export default {
       }
     },
     loop: function () {
+      if (this.isPause) return
       this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
       this.player1.update()
       this.player2.update()
@@ -281,26 +288,12 @@ export default {
       }
     },
     changeState: function () {
-      if (!this.modalStop) {
-        if (this.isPause) {
-          this.resume()
-        } else {
-          this.pause()
-        }
+      if (this.isEnd) return
+      if (this.isPause) {
+        this.resume()
+      } else {
+        this.pause()
       }
-    },
-    showRule: function () {
-      let title = 'Rule'
-      let content = '<p>1. Attack each other.</p><p>2. The game ends when the player\'s HP return to 0.</p><p>3. Press ESC to pause or continue game.</p>'
-      let _this = this
-      this.$Modal.info({
-        title: title,
-        content: content,
-        okText: 'OK',
-        onOk: () => {
-          _this.start()
-        }
-      })
     },
     start: function () {
       this.attachListener()
@@ -321,13 +314,14 @@ export default {
       this.loop()
     },
     stop: function () {
-      cancelAnimationFrame(this.handlerId)
+      this.isEnd = true
       this.isShotting1 = false
       this.isShotting2 = false
       this.player1.resetStates()
       this.player2.resetStates()
-      this.isPause = true
       setTimeout(() => {
+        this.isPause = true
+        cancelAnimationFrame(this.handlerId)
         this.modalStop = true
       }, 2000)
     },
@@ -336,15 +330,31 @@ export default {
       this.hp2 = this.player2.hp
       this.player1.resetCoord()
       this.player2.resetCoord()
+      this.player1.resetSource()
+      this.player2.resetSource()
       this.bullets1 = []
       this.bullets2 = []
+    },
+    showRule: function () {
+      let title = 'Rule'
+      let content = '<p>1. Attack each other.</p><p>2. The game ends when the player\'s HP return to 0.</p><p>3. Press ESC to pause or continue game.</p>'
+      let _this = this
+      this.$Modal.info({
+        title: title,
+        content: content,
+        okText: 'OK',
+        onOk: () => {
+          _this.start()
+        }
+      })
     },
     onClickStopModal: function (choose) {
       this.modalStop = false
       if (choose) {
         this.reset()
       }
-      this.changeState()
+      this.isPause = false
+      this.loop()
     }
   }
 }

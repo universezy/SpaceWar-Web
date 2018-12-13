@@ -2,7 +2,7 @@ const BulletConsts = {
   color1: 'rgb(255,140,0)',
   color2: 'rgb(124,252,0)',
   size: 4,
-  attack: 20,
+  attack: 2,
   velocity: 15,
   maxCount: 30
 }
