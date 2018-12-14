@@ -22,7 +22,7 @@ function Player (canvas, x, y, img, explose) {
   this.mvDown = false
   this.mvLeft = false
   this.mvRight = false
-  this.show = true
+  this.alive = true
 }
 
 Player.prototype.update = function () {
@@ -53,7 +53,7 @@ Player.prototype.update = function () {
 }
 
 Player.prototype.draw = function () {
-  if (!this.show) {
+  if (!this.alive) {
     this.img = this.explose
   }
   this.ctx.drawImage(this.img, this.x - this.img.width / 2, this.y - this.img.height / 2)
@@ -89,7 +89,7 @@ Player.prototype.resetCoord = function () {
 
 Player.prototype.resetSource = function () {
   this.img = this.originImg
-  this.show = true
+  this.alive = true
 }
 
 export default {

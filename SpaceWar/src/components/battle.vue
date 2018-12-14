@@ -56,6 +56,7 @@ export default {
       isShotting1: false,
       isShotting2: false,
       handlerId: 0,
+      timeoutId: 0,
       isPause: true,
       isEnd: false,
       showAlert: false,
@@ -70,7 +71,6 @@ export default {
     prepare: function () {
       this.prepareEnv()
       this.prepareSrc()
-      this.isPause = true
       this.showRule()
     },
     prepareEnv: function () {
@@ -105,7 +105,7 @@ export default {
         this.hp1 += hp
         if (this.hp1 <= 0) {
           this.hp1 = 0
-          this.player1.show = false
+          this.player1.alive = false
           this.playerWin = '2'
           this.stop()
         } else if (this.hp1 > 100) {
@@ -118,7 +118,7 @@ export default {
         this.hp2 += hp
         if (this.hp2 <= 0) {
           this.hp2 = 0
-          this.player2.show = false
+          this.player2.alive = false
           this.playerWin = '1'
           this.stop()
         } else if (this.hp2 > 100) {
@@ -127,6 +127,7 @@ export default {
       }
     },
     attachListener: function () {
+      document.getElementById('img_new').onclick = this.reset
       if (typeof window.addEventListener !== 'undefined') {
         window.addEventListener('keydown', this.onKeydown)
         window.addEventListener('keyup', this.onKeyup)
@@ -319,13 +320,14 @@ export default {
       this.isShotting2 = false
       this.player1.resetStates()
       this.player2.resetStates()
-      setTimeout(() => {
+      this.timeoutId = setTimeout(() => {
         this.isPause = true
         cancelAnimationFrame(this.handlerId)
         this.modalStop = true
       }, 2000)
     },
     reset: function () {
+      clearTimeout(this.timeoutId)
       this.hp1 = this.player1.hp
       this.hp2 = this.player2.hp
       this.player1.resetCoord()
@@ -381,7 +383,7 @@ export default {
   display: block;
   font-size: 16px;
   color: #ff0000;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .h1_modal_stop{

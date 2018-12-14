@@ -1,7 +1,12 @@
 <template>
-  <div>
-    <div class="div_alert">PAUSE</div>
-  </div>
+  <div class="div_alert">
+        <Card class="card_pause">
+        <div>
+            <img src="../assets/logo.png" class="img_icon">
+            <h2>Pause</h2>
+        </div>
+    </Card>
+    </div>
 </template>
 
 <script>
@@ -18,17 +23,21 @@ export default {
 .div_alert {
   width: auto;
   height: auto;
-  padding: 10px;
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  align-items: center;
-  font-family: sans-serif, Arial, Helvetica;
-  font-size: 40px;
-  color: #f78504;
-  background: #ffffff;
-  border-radius: 15px;
-  z-index: 9999;
+  z-index: 2;
+}
+
+.card_pause{
+  width: 240px;
+  height: 120px;
+  border-radius: 30px;
+}
+
+.img_icon{
+  width: 50px;
+  height: 50px;
 }
 </style>
