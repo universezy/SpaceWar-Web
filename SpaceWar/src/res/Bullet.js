@@ -1,10 +1,10 @@
 const BulletConsts = {
-  color1: 'rgb(255,140,0)',
-  color2: 'rgb(124,252,0)',
-  size: 4,
-  attack: 2,
-  velocity: 15,
-  maxCount: 30
+  COLOR1: 'rgb(255,140,0)',
+  COLOR2: 'rgb(124,252,0)',
+  SIZE: 4,
+  ATTACK: 1,
+  VELOCITY: 15,
+  MAX_COUNT: 30
 }
 
 function Bullet (canvas, x, y, dx, dy, color) {
@@ -14,9 +14,9 @@ function Bullet (canvas, x, y, dx, dy, color) {
   this.dx = dx
   this.dy = dy
   this.color = color
-  this.size = BulletConsts.size
-  this.attack = BulletConsts.attack
-  this.velocity = BulletConsts.velocity
+  this.size = BulletConsts.SIZE
+  this.attack = BulletConsts.ATTACK
+  this.velocity = BulletConsts.VELOCITY
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0

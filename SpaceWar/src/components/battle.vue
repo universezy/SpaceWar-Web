@@ -9,17 +9,29 @@
       <Progress class="progress_hp" :percent="hp2" :stroke-width="10" />
       <Progress class="progress_hp" :percent="hp1" :stroke-width="10" />
     </div>
-    <comAlert v-show="showAlert"></comAlert>
+    <comAlert v-show="alertPause"></comAlert>
     <comMenu></comMenu>
-    <Modal :closable="false" :mask-closable="false" v-model="modalStop">
-      <h1 slot="header" class="h1_modal_stop">Game Over</h1>
+    <Modal :closable="false" :mask-closable="false" v-model="modalHelp">
+      <h1 slot="header" class="h1_modal">Help</h1>
       <div>
-        <p class="p_modal_stop">Player {{playerWin}} wins !</p>
-        <p class="p_modal_stop">Do you want to start a new game?</p>
+        <p class="p_modal">1. Attack each other.</p>
+        <p class="p_modal">2. The game ends when any player's HP return to 0.</p>
+        <p class="p_modal">3. Press ESC to pause or continue game.</p>
+        <Table border :columns="colController" :data="dataController"></Table>
       </div>
       <div slot="footer">
-        <Button type="error" size="large" @click="onClickStopModal(false)">No</Button>
-        <Button type="success" size="large" @click="onClickStopModal(true)">Yes</Button>
+        <Button type="primary" size="large" @click="onStart">OK</Button>
+      </div>
+    </Modal>
+    <Modal :closable="false" :mask-closable="false" v-model="modalResult">
+      <h1 slot="header" class="h1_modal">Game Over</h1>
+      <div>
+        <p class="p_modal">Player {{playerWin}} wins !</p>
+        <p class="p_modal">Do you want to start a new game?</p>
+      </div>
+      <div slot="footer">
+        <Button type="error" size="large" @click="onResult(false)">No</Button>
+        <Button type="success" size="large" @click="onResult(true)">Yes</Button>
       </div>
     </Modal>
   </div>
@@ -30,6 +42,7 @@ import comMenu from './component-menu.vue'
 import comAlert from './component-alert.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
+import mGame from '../res/Game'
 
 export default {
   name: 'battle',
@@ -39,7 +52,6 @@ export default {
   },
   data () {
     return {
-      imgSize: 50,
       canvas: null,
       ctx: null,
       screenWidth: 0,
@@ -57,22 +69,101 @@ export default {
       isShotting2: false,
       handlerId: 0,
       timeoutId: 0,
-      isPause: true,
-      isEnd: false,
-      showAlert: false,
-      modalStop: false,
-      playerWin: 'null'
+      gameState: -1,
+      alertPause: false,
+      modalHelp: false,
+      modalResult: false,
+      playerWin: -1,
+      colController: [
+        {
+          title: 'Operation',
+          key: 'operation'
+        },
+        {
+          title: 'Player1',
+          key: 'player1'
+        },
+        {
+          title: 'Player2',
+          key: 'player2'
+        }
+      ],
+      dataController: [
+        {
+          operation: 'Move up',
+          player1: 'W',
+          player2: 'Up'
+        },
+        {
+          operation: 'Move down',
+          player1: 'S',
+          player2: 'Down'
+        },
+        {
+          operation: 'Move left',
+          player1: 'A',
+          player2: 'Left'
+        },
+        {
+          operation: 'Move right',
+          player1: 'D',
+          player2: 'Right'
+        },
+        {
+          operation: 'Shot',
+          player1: 'F',
+          player2: 'L'
+        }
+      ]
     }
   },
   mounted () {
-    this.prepare()
+    this.onPrepare()
   },
   methods: {
-    prepare: function () {
+    /** Lifecycle */
+    onPrepare: function () {
       this.prepareEnv()
       this.prepareSrc()
-      this.showRule()
+      this.attachListener()
+      if (this.gameState === -1) {
+        this.modalHelp = true
+      }
+      this.gameState = mGame.GameState.PREPARE
     },
+    onStart: function () {
+      this.modalHelp = false
+      if (this.gameState === mGame.GameState.PREPARE) {
+        this.gameState = mGame.GameState.START
+        this.onResume()
+      }
+    },
+    onResume: function () {
+      this.alertPause = false
+      this.gameState = mGame.GameState.RUN
+      this.loop()
+    },
+    onPause: function () {
+      this.isShotting1 = false
+      this.isShotting2 = false
+      this.player1.resetStates()
+      this.player2.resetStates()
+      cancelAnimationFrame(this.handlerId)
+      this.alertPause = true
+      this.gameState = mGame.GameState.PAUSE
+    },
+    onStop: function () {
+      this.isShotting1 = false
+      this.isShotting2 = false
+      this.player1.resetStates()
+      this.player2.resetStates()
+      this.timeoutId = setTimeout(() => {
+        cancelAnimationFrame(this.handlerId)
+        this.gameState = mGame.GameState.STOP
+        this.modalResult = true
+      }, 2000)
+    },
+    /** Custom */
     prepareEnv: function () {
       this.canvas = document.getElementById('canvas_game')
       this.ctx = this.canvas.getContext('2d')
@@ -100,35 +191,11 @@ export default {
       this.hp1 = this.player1.hp
       this.hp2 = this.player2.hp
     },
-    updateHp1: function (hp) {
-      if (this.hp1 !== 0) {
-        this.hp1 += hp
-        if (this.hp1 <= 0) {
-          this.hp1 = 0
-          this.player1.alive = false
-          this.playerWin = '2'
-          this.stop()
-        } else if (this.hp1 > 100) {
-          this.hp1 = 100
-        }
-      }
-    },
-    updateHp2: function (hp) {
-      if (this.hp2 !== 0) {
-        this.hp2 += hp
-        if (this.hp2 <= 0) {
-          this.hp2 = 0
-          this.player2.alive = false
-          this.playerWin = '1'
-          this.stop()
-        } else if (this.hp2 > 100) {
-          this.hp2 = 100
-        }
-      }
-    },
     attachListener: function () {
-      document.getElementById('img_new').onclick = this.reset
+      document.getElementById('button_help').onclick = this.onHelp
+      document.getElementById('button_restart').onclick = this.restart
       if (typeof window.addEventListener !== 'undefined') {
+        window.addEventListener('resize', this.reload)
         window.addEventListener('keydown', this.onKeydown)
         window.addEventListener('keyup', this.onKeyup)
       } else {
@@ -136,46 +203,46 @@ export default {
       }
     },
     onKeydown: function (e) {
+      if (this.gameState !== mGame.GameState.RUN && this.gameState !== mGame.GameState.PAUSE) return
       // 兼容Firefox
       e = e || event
       let code = e.witch || e.keyCode
-      if (code === 27) { // esc
-        this.changeState()
-      } else if (!this.isPause) {
-        switch (code) {
-          case 70:// f
-            this.isShotting1 = true
-            break
-          case 87:// w
-            this.player1.setUp(true)
-            break
-          case 65:// a
-            this.player1.setLeft(true)
-            break
-          case 83:// s
-            this.player1.setDown(true)
-            break
-          case 68:// d
-            this.player1.setRight(true)
-            break
-          case 76:// l
-            this.isShotting2 = true
-            break
-          case 38:// up
-            this.player2.setUp(true)
-            break
-          case 37:// left
-            this.player2.setLeft(true)
-            break
-          case 40:// down
-            this.player2.setDown(true)
-            break
-          case 39:// right
-            this.player2.setRight(true)
-            break
-          default:
-            break
-        }
+      switch (code) {
+        case 27:// esc
+          this.changeState()
+          break
+        case 70:// f
+          this.isShotting1 = true
+          break
+        case 87:// w
+          this.player1.setUp(true)
+          break
+        case 65:// a
+          this.player1.setLeft(true)
+          break
+        case 83:// s
+          this.player1.setDown(true)
+          break
+        case 68:// d
+          this.player1.setRight(true)
+          break
+        case 76:// l
+          this.isShotting2 = true
+          break
+        case 38:// up
+          this.player2.setUp(true)
+          break
+        case 37:// left
+          this.player2.setLeft(true)
+          break
+        case 40:// down
+          this.player2.setDown(true)
+          break
+        case 39:// right
+          this.player2.setRight(true)
+          break
+        default:
+          break
       }
     },
     onKeyup: function (e) {
@@ -216,26 +283,37 @@ export default {
           break
       }
     },
+    loop: function () {
+      if (this.gameState !== mGame.GameState.RUN) return
+      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
+      this.player1.updateCoord()
+      this.player2.updateCoord()
+      this.player1.draw()
+      this.player2.draw()
+      this.onShot()
+      this.onBullets()
+      this.handlerId = requestAnimationFrame(this.loop)
+    },
     onShot: function () {
-      if (this.hp1 > 0 && this.isShotting1 && this.bullets1.length < mBullet.BulletConsts.maxCount) {
+      if (this.hp1 > 0 && this.isShotting1 && this.bullets1.length < mBullet.BulletConsts.MAX_COUNT) {
         var bullet1 = new mBullet.Bullet(
           this.canvas,
           this.player1.x,
-          this.player1.y - this.imgPlayer1.height / 2,
+          this.player1.y - this.player1.getImg().height / 2,
           0,
           -1,
-          mBullet.BulletConsts.color1
+          mBullet.BulletConsts.COLOR1
         )
         this.bullets1.push(bullet1)
       }
-      if (this.hp2 > 0 && this.isShotting2 && this.bullets2.length < mBullet.BulletConsts.maxCount) {
+      if (this.hp2 > 0 && this.isShotting2 && this.bullets2.length < mBullet.BulletConsts.MAX_COUNT) {
         var bullet2 = new mBullet.Bullet(
           this.canvas,
           this.player2.x,
-          this.player2.y + this.imgPlayer2.height / 2,
+          this.player2.y + this.player2.getImg().height / 2,
           0,
           1,
-          mBullet.BulletConsts.color2
+          mBullet.BulletConsts.COLOR2
         )
         this.bullets2.push(bullet2)
       }
@@ -245,9 +323,9 @@ export default {
         if (this.bullets1[i].show === true) {
           this.bullets1[i].update()
           this.bullets1[i].draw()
-          if (this.checkCollision(this.bullets1[i].x, this.bullets1[i].y, this.player2.x, this.player2.y)) {
+          if (this.checkCollision(this.player2, this.bullets1[i])) {
             this.bullets1[i].show = false
-            this.updateHp2(0 - this.bullets1[i].attack)
+            this.hp2 = this.updateHp(this.player2, 0 - this.bullets1[i].attack, 1)
           }
         } else {
           this.bullets1.splice(i, 1)
@@ -257,106 +335,74 @@ export default {
         if (this.bullets2[j].show === true) {
           this.bullets2[j].update()
           this.bullets2[j].draw()
-          if (this.checkCollision(this.bullets2[j].x, this.bullets2[j].y, this.player1.x, this.player1.y)) {
+          if (this.checkCollision(this.player1, this.bullets2[j])) {
             this.bullets2[j].show = false
-            this.updateHp1(0 - this.bullets2[j].attack)
+            this.hp1 = this.updateHp(this.player1, 0 - this.bullets2[j].attack, 2)
           }
         } else {
           this.bullets2.splice(j, 1)
         }
       }
     },
-    loop: function () {
-      if (this.isPause) return
-      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
-      this.player1.update()
-      this.player2.update()
-      this.player1.draw()
-      this.player2.draw()
-      this.onShot()
-      this.onBullets()
-      this.checkCollision()
-      this.handlerId = requestAnimationFrame(this.loop)
-    },
-    checkCollision: function (x1, y1, x2, y2) {
-      let distance = (this.imgSize + mBullet.BulletConsts.size) / 2
-      let deltaX = x1 - x2
-      let deltaY = y1 - y2
+    checkCollision: function (player, bullet) {
+      let distance = (player.getImg().width + mBullet.BulletConsts.SIZE) / 2
+      let deltaX = player.x - bullet.x
+      let deltaY = player.y - bullet.y
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) > Math.pow(distance, 2)) {
         return false
       } else {
         return true
       }
     },
+    updateHp: function (player, hp, winner) {
+      if (!player.alive) return
+      player.updateHp(hp)
+      if (!player.alive) {
+        this.playerWin = winner
+        this.onStop()
+      }
+      return player.hp
+    },
     changeState: function () {
-      if (this.isEnd) return
-      if (this.isPause) {
-        this.resume()
-      } else {
-        this.pause()
+      if (this.gameState === mGame.GameState.PAUSE) {
+        this.onResume()
+      } else if (this.gameState === mGame.GameState.RUN) {
+        this.onPause()
       }
     },
-    start: function () {
-      this.attachListener()
-      this.changeState()
+    onHelp: function () {
+      this.onPause()
+      this.modalHelp = true
     },
-    pause: function () {
-      this.showAlert = true
-      cancelAnimationFrame(this.handlerId)
-      this.isShotting1 = false
-      this.isShotting2 = false
-      this.player1.resetStates()
-      this.player2.resetStates()
-      this.isPause = true
+    onResult: function (result) {
+      this.modalResult = false
+      if (result) {
+        this.restart()
+      } else {
+        this.onResume()
+      }
     },
-    resume: function () {
-      this.showAlert = false
-      this.isPause = false
-      this.loop()
-    },
-    stop: function () {
-      this.isEnd = true
-      this.isShotting1 = false
-      this.isShotting2 = false
-      this.player1.resetStates()
-      this.player2.resetStates()
-      this.timeoutId = setTimeout(() => {
-        this.isPause = true
-        cancelAnimationFrame(this.handlerId)
-        this.modalStop = true
-      }, 2000)
+    restart: function () {
+      this.reset()
+      this.onResume()
     },
     reset: function () {
+      this.gameState = mGame.GameState.STOP
+      cancelAnimationFrame(this.handlerId)
       clearTimeout(this.timeoutId)
-      this.hp1 = this.player1.hp
-      this.hp2 = this.player2.hp
       this.player1.resetCoord()
       this.player2.resetCoord()
       this.player1.resetSource()
       this.player2.resetSource()
+      this.hp1 = this.player1.hp
+      this.hp2 = this.player2.hp
       this.bullets1 = []
       this.bullets2 = []
     },
-    showRule: function () {
-      let title = 'Rule'
-      let content = '<p>1. Attack each other.</p><p>2. The game ends when the player\'s HP return to 0.</p><p>3. Press ESC to pause or continue game.</p>'
-      let _this = this
-      this.$Modal.info({
-        title: title,
-        content: content,
-        okText: 'OK',
-        onOk: () => {
-          _this.start()
-        }
-      })
-    },
-    onClickStopModal: function (choose) {
-      this.modalStop = false
-      if (choose) {
-        this.reset()
-      }
-      this.isPause = false
-      this.loop()
+    reload: function () {
+      this.reset()
+      this.onPrepare()
+      this.onStart()
     }
   }
 }
@@ -386,15 +432,15 @@ export default {
   opacity: 0.8;
 }
 
-.h1_modal_stop{
-  color:#2d8cf0;
-  text-align:center;
+.h1_modal {
+  color: #2db7f5;
+  text-align: center;
   font-size: 30px;
 }
 
-.p_modal_stop{
-  margin: 10px;
-  font-size: 20px;
-  text-align: center;
+.p_modal {
+  margin: 8px;
+  font-size: 18px;
+  color: #515a6e;
 }
 </style>

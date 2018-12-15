@@ -1,17 +1,16 @@
 const PlayerConsts = {
-  hp: 100,
-  velocity: 5
+  HP: 100,
+  VELOCITY: 5
 }
 
-function Player (canvas, x, y, img, explose) {
+function Player (canvas, x, y, imgAlive, imgExplose) {
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
-  this.img = img
-  this.explose = explose
-  this.hp = PlayerConsts.hp
-  this.velocity = PlayerConsts.velocity
-  this.originImg = img
+  this.imgAlive = imgAlive
+  this.imgExplose = imgExplose
+  this.hp = PlayerConsts.HP
+  this.velocity = PlayerConsts.VELOCITY
   this.originX = x
   this.originY = y
   this.minX = 0
@@ -25,7 +24,17 @@ function Player (canvas, x, y, img, explose) {
   this.alive = true
 }
 
-Player.prototype.update = function () {
+Player.prototype.draw = function () {
+  let imgTarget
+  if (this.alive) {
+    imgTarget = this.imgAlive
+  } else {
+    imgTarget = this.imgExplose
+  }
+  this.ctx.drawImage(imgTarget, this.x - imgTarget.width / 2, this.y - imgTarget.height / 2)
+}
+
+Player.prototype.updateCoord = function () {
   if (this.mvUp) {
     this.y -= this.velocity
     if (this.y < this.minY) {
@@ -52,11 +61,24 @@ Player.prototype.update = function () {
   }
 }
 
-Player.prototype.draw = function () {
-  if (!this.alive) {
-    this.img = this.explose
+Player.prototype.updateHp = function (hp) {
+  if (this.hp !== 0) {
+    this.hp += hp
+    if (this.hp <= 0) {
+      this.hp = 0
+      this.alive = false
+    } else if (this.hp1 > 100) {
+      this.hp = 100
+    }
   }
-  this.ctx.drawImage(this.img, this.x - this.img.width / 2, this.y - this.img.height / 2)
+}
+
+Player.prototype.getImg = function () {
+  if (this.alive) {
+    return this.imgAlive
+  } else {
+    return this.imgExplose
+  }
 }
 
 Player.prototype.setUp = function (status) {
@@ -88,7 +110,7 @@ Player.prototype.resetCoord = function () {
 }
 
 Player.prototype.resetSource = function () {
-  this.img = this.originImg
+  this.hp = PlayerConsts.HP
   this.alive = true
 }
 

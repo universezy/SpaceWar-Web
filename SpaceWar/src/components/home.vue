@@ -54,75 +54,75 @@ export default {
 /*glow for webkit*/
 @-webkit-keyframes neon {
   from {
-    text-shadow: 0 0 10px #fff,
-      0 0 20px #fff,
-      0 0 30px #fff,
-      0 0 40px #228DFF,
-      0 0 70px #228DFF,
-      0 0 80px #228DFF,
-      0 0 100px #228DFF,
-      0 0 150px #228DFF;
+    text-shadow: 0 0 10px #fefcc9,
+      0 0 20px #feec85,
+      0 0 40px #ffae34,
+      0 0 60px #ec760c,
+      0 0 100px #cd4606,
+      0 0 160px #973716,
+      0 0 220px #451b0e,
+      0 0 300px #230b00;
   }
 
   to {
-    text-shadow: 0 0 5px #fff,
-      0 0 10px #fff,
-      0 0 15px #fff,
-      0 0 20px #228DFF,
-      0 0 35px #228DFF,
-      0 0 40px #228DFF,
-      0 0 50px #228DFF,
-      0 0 75px #228DFF;
+    text-shadow: 0 0 5px #fefcc9,
+      0 0 10px #feec85,
+      0 0 20px #ffae34,
+      0 0 30px #ec760c,
+      0 0 50px #cd4606,
+      0 0 80px #973716,
+      0 0 110px #451b0e,
+      0 0 150px #230b00;
   }
 }
 
 /*glow for mozilla*/
 @-moz-keyframes neon {
   from {
-    text-shadow: 0 0 10px #fff,
-      0 0 20px #fff,
-      0 0 30px #fff,
-      0 0 40px #228DFF,
-      0 0 70px #228DFF,
-      0 0 80px #228DFF,
-      0 0 100px #228DFF,
-      0 0 150px #228DFF;
+    text-shadow: 0 0 10px #fefcc9,
+      0 0 20px #feec85,
+      0 0 40px #ffae34,
+      0 0 60px #ec760c,
+      0 0 100px #cd4606,
+      0 0 160px #973716,
+      0 0 220px #451b0e,
+      0 0 300px #230b00;
   }
 
   to {
-    text-shadow: 0 0 5px #fff,
-      0 0 10px #fff,
-      0 0 15px #fff,
-      0 0 20px #228DFF,
-      0 0 35px #228DFF,
-      0 0 40px #228DFF,
-      0 0 50px #228DFF,
-      0 0 75px #228DFF;
+    text-shadow: 0 0 5px #fefcc9,
+      0 0 10px #feec85,
+      0 0 20px #ffae34,
+      0 0 30px #ec760c,
+      0 0 50px #cd4606,
+      0 0 80px #973716,
+      0 0 110px #451b0e,
+      0 0 150px #230b00;
   }
 }
 
 /*glow*/
 @keyframes neon {
   from {
-    text-shadow: 0 0 10px #fff,
-      0 0 20px #fff,
-      0 0 30px #fff,
-      0 0 40px #228DFF,
-      0 0 70px #228DFF,
-      0 0 80px #228DFF,
-      0 0 100px #228DFF,
-      0 0 150px #228DFF;
+    text-shadow: 0 0 10px #fefcc9,
+      0 0 20px #feec85,
+      0 0 40px #ffae34,
+      0 0 60px #ec760c,
+      0 0 100px #cd4606,
+      0 0 160px #973716,
+      0 0 220px #451b0e,
+      0 0 300px #230b00;
   }
 
   to {
-    text-shadow: 0 0 5px #fff,
-      0 0 10px #fff,
-      0 0 15px #fff,
-      0 0 20px #228DFF,
-      0 0 35px #228DFF,
-      0 0 40px #228DFF,
-      0 0 50px #228DFF,
-      0 0 75px #228DFF;
+    text-shadow: 0 0 5px #fefcc9,
+      0 0 10px #feec85,
+      0 0 20px #ffae34,
+      0 0 30px #ec760c,
+      0 0 50px #cd4606,
+      0 0 80px #973716,
+      0 0 110px #451b0e,
+      0 0 150px #230b00;
   }
 }
 
@@ -143,7 +143,7 @@ export default {
   -webkit-transition: all 0.5s;
   -moz-transition: all 0.5s;
   transition: all 0.5s;
-  color: #228DFF;
+  color: #ffffff;
   font-size: 80px;
   font-family: Iceland;
   -webkit-animation: neon 1.5s ease-in-out infinite alternate;
@@ -167,7 +167,7 @@ export default {
   display: inline-block;
   align-items: center;
   color: #ffffff;
-  background-color: rgba(196, 196, 196, 0.2);
+  background-color: rgba(7, 7, 7, 0.2);
   border-radius: 30px;
   -webkit-transition-duration: 0.5s;
   /* Safari */
@@ -176,7 +176,7 @@ export default {
 }
 
 .div_button:hover {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(248, 248, 248, 0.2);
 }
 
 .img_button {
@@ -202,7 +202,7 @@ export default {
   bottom: 10px;
   transform: translate(-50%, -50%);
   align-items: center;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(248, 248, 248, 0.4);
 }
 
 .span_footer {
@@ -215,6 +215,6 @@ export default {
 }
 
 .span_footer:hover {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(248, 248, 248, 1);
 }
 </style>

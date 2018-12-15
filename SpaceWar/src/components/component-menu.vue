@@ -1,8 +1,11 @@
 <template>
   <div>
     <div id="div_menu">
-      <img class="img_menu" id="img_new" src="../assets/retry.svg" title="New Game" />
-      <img class="img_menu" id="img_home" src="../assets/home.svg" title="Home Page" @click="clickHome" />
+      <ButtonGroup size="large" vertical>
+        <Button class="button_menu" id="button_home" size="large" type="default" icon="md-home" ghost @click="clickHome"></Button>
+        <Button class="button_menu" id="button_help" size="large" type="default" icon="md-help" ghost></Button>
+        <Button class="button_menu" id="button_restart" size="large" type="default" icon="md-refresh" ghost></Button>
+      </ButtonGroup>
     </div>
   </div>
 </template>
@@ -34,19 +37,7 @@ export default {
   z-index: 1;
 }
 
-.img_menu {
-  display: inline-block;
-  width: 50px;
-  height: 50px;
-  padding: 0;
-  margin: 10px;
-  -webkit-transition-duration: 0.5s;
-  transition-duration: 0.5s;
-  opacity: 0.8;
-  cursor: pointer;
-}
-
-.img_menu:hover {
-  opacity: 1;
+.button_menu{
+  color:#f8f8f9;
 }
 </style>
