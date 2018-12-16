@@ -9,8 +9,8 @@
       <Progress class="progress_hp" :percent="hp2" :stroke-width="10" />
       <Progress class="progress_hp" :percent="hp1" :stroke-width="10" />
     </div>
-    <comAlert v-show="alertPause"></comAlert>
     <comMenu></comMenu>
+    <comAlert v-show="alertPause"></comAlert>
     <Modal :closable="false" :mask-closable="false" v-model="modalHelp">
       <h1 slot="header" class="h1_modal">Help</h1>
       <div>
