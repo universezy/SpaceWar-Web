@@ -7,6 +7,7 @@
       <img class="img_src" id="img_laser" src="../assets/laser.svg" />
       <img class="img_src" id="img_shield" src="../assets/shield.svg" />
       <img class="img_src" id="img_nuclear" src="../assets/nuclear.svg" />
+      <img class="img_src" id="img_nuclear_explosion" src="../assets/nuclear_explosion.svg" />
 
       <!--Enemy Normal-->
       <img class="img_src" id="img_enemy0" src="../assets/enemy0.svg" />
@@ -95,6 +96,10 @@ import comMenu from './component-menu.vue'
 import comAlert from './component-alert.vue'
 import mPlayer from '../res/Player'
 import mBullet from '../res/Bullet'
+import mEnemy from '../res/Enemy'
+import mBoss from '../res/Boss'
+import mBlock from '../res/Block'
+import mNuclear from '../res/Nuclear'
 import mGame from '../res/Game'
 
 export default {
@@ -116,18 +121,21 @@ export default {
       shield: 100,
       imgPlayer: null,
       imgExplosion: null,
+      imgNuclear: null,
+      imgNuclearExplosion: null,
+      imgsEnemy: [],
+      imgsBoss: [],
+      imgsBlock: [],
       player: null,
       playerBullets: [],
+      nuclears: [],
       enemies: [],
-      bosses: [],
       blocks: [],
+      maxCountEnemy: 10,
       countEnemy: 7,
       countBoss: 5,
       countBlock: 6,
       isShotting: false,
-      isLaser: false,
-      isNuclear: false,
-      isShield: false,
       handlerId: 0,
       timeoutId: 0,
       gameState: -1,
@@ -233,42 +241,43 @@ export default {
       /** Player */
       this.imgPlayer = document.getElementById('img_player')
       this.imgExplosion = document.getElementById('img_explosion')
-      this.imgLaser = document.getElementById('img_laser')
       this.imgNuclear = document.getElementById('img_nuclear')
-      this.imgShield = document.getElementById('img_shield')
+      this.imgNuclearExplosion = document.getElementById('img_nuclear_explosion')
+      var imgLaser = document.getElementById('img_laser')
+      var imgShield = document.getElementById('img_shield')
       this.player = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.screenHeight - this.imgPlayer.height / 2,
         this.imgPlayer,
         this.imgExplosion,
-        this.imgLaser,
-        this.imgShield
+        imgLaser,
+        imgShield
       )
       this.hp = this.player.hp
 
-      /** Enemy Normal */
-      for (var i = 0; i < this.countEnemy; i ++) {
+      /** Enemy Img */
+      for (var i = 0; i < this.countEnemy; i++) {
         var imgEnemy = document.getElementById('img_enemy' + i)
-        // TODO
-        var enemy
-        this.enemies.push(enemy)
+        this.imgsEnemy.push(imgEnemy)
       }
 
-      /** Enemy Boss */
-      for (var j = 0; j < this.countBoss; j ++) {
+      /** Boss Img */
+      for (var j = 0; j < this.countBoss; j++) {
         var imgBoss = document.getElementById('img_boss' + j)
-        // TODO
-        var boss
-        this.bosses.push(boss)
+        this.imgsBoss.push(imgBoss)
       }
 
-      /** Block */
-      for (var k = 0; k < this.countBlock; k ++) {
+      /** Block Img */
+      for (var k = 0; k < this.countBlock; k++) {
         var imgBlock = document.getElementById('img_block' + k)
-        // TODO
-        var block
-        this.blocks.push(block)
+        this.imgsBlock.push(imgBlock)
+      }
+
+      /** Enemy List */
+      for (var l = 0; l < this.maxCountEnemy; l++) {
+        var enemy = this.cerateRandomEnemy()
+        this.enemies.push(enemy)
       }
     },
     attachListener: function () {
@@ -347,31 +356,27 @@ export default {
       if (this.gameState !== mGame.GameState.RUN) return
       this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
       this.loopPlayerSrc()
-      this.loopEnemiesSrc()
+      this.loopEnemiesAndBossSrc()
       this.loopPlayerAttack()
-      this.loopEnemiesAttack()
+      this.loopEnemiesAndBossAttack()
       this.handlerId = requestAnimationFrame(this.loop)
     },
     loopPlayerSrc: function () {
       this.player.updateCoord()
       this.player.draw()
       if (this.hp > 0 && this.isShotting && this.playerBullets.length < mBullet.BulletConsts.MAX_COUNT) {
-        var bullet = new mBullet.Bullet(
-          this.canvas,
-          this.player.x,
-          this.player.y - this.player.getImg().height / 2,
-          0,
-          -1,
-          mBullet.BulletConsts.COLOR1
-        )
+        var bullet = this.createPlayerBullet()
         this.playerBullets.push(bullet)
       }
     },
-    loopEnemiesSrc: function () {
-      // TODO
+    loopEnemiesAndBossSrc: function () {
+      for (var i = this.enemies.length - 1; i >= 0; i--) {
+        this.enemies[i].updateCoord()
+        this.enemies[i].draw()
+        // TODO shot
+      }
     },
     loopPlayerAttack: function () {
-      // TODO laser
       for (var i = this.playerBullets.length - 1; i >= 0; i--) {
         if (this.playerBullets[i].show === true) {
           this.playerBullets[i].update()
@@ -381,20 +386,48 @@ export default {
           this.playerBullets.splice(i, 1)
         }
       }
-      // TODO nuclear
-      // TODO shield
+      for (var j = this.nuclears.length - 1; j >= 0; j--) {
+        if (this.nuclears[j].show === true) {
+          this.nuclears[j].updateCoord()
+          this.nuclears[j].draw()
+          // TODO checkCollision
+        } else {
+          this.nuclears.splice(j, 1)
+        }
+      }
     },
-    loopEnemiesAttack: function () {
+    loopEnemiesAndBossAttack: function () {
       // TODO
     },
     onLaser: function () {
-      // TODO
+      if (this.laser === 100) {
+        this.laser = 0
+        this.player.onLaser()
+        // TODO setTimeout
+      }
     },
     onNuclear: function () {
-      // TODO
+      if (this.nuclears.length > 0) {
+        for (var i = 0; i < this.nuclears.length; i++) {
+          if (this.nuclears[i].alive === true) {
+            this.nuclears[i].detonate()
+            return
+          }
+        }
+      }
+      if (this.nuclear === 100) {
+        this.nuclear = 0
+        var nuclear = this.createNuclear()
+        this.nuclears.push(nuclear)
+        // TODO setTimeout
+      }
     },
     onShield: function () {
-      // TODO
+      if (this.shield === 100) {
+        this.shield = 0
+        this.player.onShield()
+        // TODO setTimeout
+      }
     },
     checkCollision: function (plane, bullet) {
       let distance = (plane.getImg().width + mBullet.BulletConsts.SIZE) / 2
@@ -449,6 +482,65 @@ export default {
       this.reset()
       this.onPrepare()
       this.onStart()
+    },
+    createPlayerBullet: function () {
+      var bullet = new mBullet.Bullet(
+        this.canvas,
+        this.player.x,
+        this.player.y - this.player.getImg().height / 2,
+        0,
+        -1,
+        mBullet.BulletConsts.COLOR1
+      )
+      return bullet
+    },
+    createEnemyBullet: function (enemy) {
+      var bullet = new mBullet.Bullet(
+        this.canvas,
+        this.enemy.x,
+        this.enemy.y + this.enemy.getImg().height / 2,
+        0,
+        1,
+        mBullet.BulletConsts.COLOR2
+      )
+      return bullet
+    },
+    cerateRandomEnemy: function () {
+      let randomX = this.screenWidth * Math.random()
+      let randomY = -1000 * Math.random()
+      let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 1
+      let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.3
+      let randomNum = Math.floor(this.countEnemy * Math.random())
+      var enemy = new mEnemy.Enemy(
+        this.canvas,
+        randomX,
+        randomY,
+        randomDx,
+        randomDy,
+        this.imgsEnemy[randomNum],
+        this.imgExplosion
+      )
+      return enemy
+    },
+    cerateRandomBoss: function () {
+      var boss = new mBoss.Boss()
+      return boss
+    },
+    cerateRandomBlock: function () {
+      var block = new mBlock.Block()
+      return block
+    },
+    createNuclear: function () {
+      var nuclear = new mNuclear.Nuclear(
+        this.canvas,
+        this.player.x,
+        this.player.y,
+        0,
+        -1,
+        this.imgNuclear,
+        this.imgNuclearExplosion
+      )
+      return nuclear
     }
   }
 }

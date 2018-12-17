@@ -7,12 +7,12 @@ const BulletConsts = {
   MAX_COUNT: 30
 }
 
-function Bullet (canvas, x, y, dx, dy, color) {
+function Bullet (canvas, x, y, offsetX, offsetY, color) {
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
-  this.dx = dx
-  this.dy = dy
+  this.offsetX = offsetX
+  this.offsetY = offsetY
   this.color = color
   this.size = BulletConsts.SIZE
   this.attack = BulletConsts.ATTACK
@@ -25,11 +25,11 @@ function Bullet (canvas, x, y, dx, dy, color) {
 }
 
 Bullet.prototype.update = function () {
-  this.x += this.dx * this.velocity
+  this.x += this.offsetX * this.velocity
   if (this.x < this.minX || this.x > this.maxX) {
     this.show = false
   }
-  this.y += this.dy * this.velocity
+  this.y += this.offsetY * this.velocity
   if (this.y < this.minY || this.y > this.maxY) {
     this.show = false
   }
