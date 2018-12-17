@@ -136,8 +136,11 @@ export default {
       countBoss: 5,
       countBlock: 6,
       isShotting: false,
-      handlerId: 0,
-      timeoutId: 0,
+      handlerIdLoop: 0,
+      timeoutIdLaser: 0,
+      timeoutIdNuclear: 0,
+      timeoutIdShield: 0,
+      timeoutIdStop: 0,
       gameState: -1,
       alertPause: false,
       modalHelp: false,
@@ -217,15 +220,15 @@ export default {
     onPause: function () {
       this.isShotting = false
       this.player.resetStates()
-      cancelAnimationFrame(this.handlerId)
+      cancelAnimationFrame(this.handlerIdLoop)
       this.alertPause = true
       this.gameState = mGame.GameState.PAUSE
     },
     onStop: function () {
       this.isShotting = false
       this.player.resetStates()
-      this.timeoutId = setTimeout(() => {
-        cancelAnimationFrame(this.handlerId)
+      this.timeoutIdStop = setTimeout(() => {
+        cancelAnimationFrame(this.handlerIdLoop)
         this.gameState = mGame.GameState.STOP
         this.modalResult = true
       }, 2000)
@@ -359,12 +362,12 @@ export default {
       this.loopEnemiesAndBossSrc()
       this.loopPlayerAttack()
       this.loopEnemiesAndBossAttack()
-      this.handlerId = requestAnimationFrame(this.loop)
+      this.handlerIdLoop = requestAnimationFrame(this.loop)
     },
     loopPlayerSrc: function () {
       this.player.updateCoord()
       this.player.draw()
-      if (this.hp > 0 && this.isShotting && this.playerBullets.length < mBullet.BulletConsts.MAX_COUNT) {
+      if (this.hp > 0 && this.isShotting && !this.player.laser && this.playerBullets.length < mBullet.BulletConsts.MAX_COUNT) {
         var bullet = this.createPlayerBullet()
         this.playerBullets.push(bullet)
       }
@@ -403,7 +406,13 @@ export default {
       if (this.laser === 100) {
         this.laser = 0
         this.player.onLaser()
-        // TODO setTimeout
+        this.timeoutIdLaser = setInterval(() => {
+          this.laser += 2
+          if (this.laser >= 100) {
+            this.laser = 100
+            clearInterval(this.timeoutIdLaser)
+          }
+        }, 1000)
       }
     },
     onNuclear: function () {
@@ -419,14 +428,26 @@ export default {
         this.nuclear = 0
         var nuclear = this.createNuclear()
         this.nuclears.push(nuclear)
-        // TODO setTimeout
+        this.timeoutIdNuclear = setInterval(() => {
+          this.nuclear += 2
+          if (this.nuclear >= 100) {
+            this.nuclear = 100
+            clearInterval(this.timeoutIdNuclear)
+          }
+        }, 1000)
       }
     },
     onShield: function () {
       if (this.shield === 100) {
         this.shield = 0
         this.player.onShield()
-        // TODO setTimeout
+        this.timeoutIdShield = setInterval(() => {
+          this.shield += 2
+          if (this.shield >= 100) {
+            this.shield = 100
+            clearInterval(this.timeoutIdShield)
+          }
+        }, 1000)
       }
     },
     checkCollision: function (plane, bullet) {
@@ -470,8 +491,8 @@ export default {
     },
     reset: function () {
       this.gameState = mGame.GameState.STOP
-      cancelAnimationFrame(this.handlerId)
-      clearTimeout(this.timeoutId)
+      cancelAnimationFrame(this.handlerIdLoop)
+      clearTimeout(this.timeoutIdStop)
       this.player.resetCoord()
       this.player.resetSource()
       this.hp = this.player.hp

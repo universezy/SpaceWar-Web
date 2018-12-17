@@ -1,7 +1,7 @@
 const NuclearConsts = {
   HP: 300,
   VELOCITY: 0.5,
-  DURATION: 500
+  DURATION: 300
 }
 
 function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
