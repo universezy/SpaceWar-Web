@@ -31,8 +31,8 @@ export default {
   height: auto;
   display: block;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
   align-items: center;
   z-index: 1;
 }

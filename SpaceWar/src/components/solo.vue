@@ -1,27 +1,68 @@
 <template>
   <div>
     <canvas id="canvas_game">
-      <img class="img_plane" id="img_player" src="../assets/player.svg" />
-      <img class="img_plane" id="img_explose" src="../assets/explose.svg" />
+      <!--Player-->
+      <img class="img_src" id="img_player" src="../assets/player.svg" />
+      <img class="img_src" id="img_explosion" src="../assets/explosion.svg" />
+      <img class="img_src" id="img_laser" src="../assets/laser.svg" />
+      <img class="img_src" id="img_shield" src="../assets/shield.svg" />
+      <img class="img_src" id="img_nuclear" src="../assets/nuclear.svg" />
+
+      <!--Enemy Normal-->
+      <img class="img_src" id="img_enemy0" src="../assets/enemy0.svg" />
+      <img class="img_src" id="img_enemy1" src="../assets/enemy1.svg" />
+      <img class="img_src" id="img_enemy2" src="../assets/enemy2.svg" />
+      <img class="img_src" id="img_enemy3" src="../assets/enemy3.svg" />
+      <img class="img_src" id="img_enemy4" src="../assets/enemy4.svg" />
+      <img class="img_src" id="img_enemy5" src="../assets/enemy5.svg" />
+      <img class="img_src" id="img_enemy6" src="../assets/enemy6.svg" />
+
+      <!--Enemy Boss-->
+      <img class="img_src" id="img_boss0" src="../assets/boss0.svg" />
+      <img class="img_src" id="img_boss1" src="../assets/boss1.svg" />
+      <img class="img_src" id="img_boss2" src="../assets/boss2.svg" />
+      <img class="img_src" id="img_boss3" src="../assets/boss3.svg" />
+      <img class="img_src" id="img_boss4" src="../assets/boss4.svg" />
+
+      <!--Block-->
+      <img class="img_src" id="img_block0" src="../assets/block0.svg" />
+      <img class="img_src" id="img_block1" src="../assets/block1.svg" />
+      <img class="img_src" id="img_block2" src="../assets/block2.svg" />
+      <img class="img_src" id="img_block3" src="../assets/block3.svg" />
+      <img class="img_src" id="img_block4" src="../assets/block4.svg" />
+      <img class="img_src" id="img_block5" src="../assets/block5.svg" />
+
     </canvas>
-    <!-- <div id="div_infos">
-      <div class="div_info">
-        <img class="img_info" src="../assets/level.svg" />
-        <span class="span_info" id="span_level">{{ level }}</span>
-      </div>
 
-      <div class="div_info">
-        <img class="img_info" src="../assets/hp.svg" />
-        <span class="span_info" id="span_hp">{{ hp }}</span>
-      </div>
+    <div class="div_info">
+      <Card class="card_info">
+        <Row class="row_score">
+          <Icon type="md-trophy" size="25"></Icon><span class="span_score">{{score}}</span>
+        </Row>
+        <Divider />
+        <Row class="row_hp">
+          <Icon type="md-heart" size="25"></Icon>
+          <Progress class="progress_info" :percent="hp" :stroke-width="10" />
+        </Row>
+        <Divider />
+        <Row class="row_laser">
+          <Icon type="md-flash" size="25"></Icon>
+          <Progress class="progress_info" :percent="laser" :stroke-width="10" />
+        </Row>
+        <Row class="row_nuclear">
+          <Icon type="ios-nuclear" size="25"></Icon>
+          <Progress class="progress_info" :percent="nuclear" :stroke-width="10" />
+        </Row>
+        <Row class="row_shield">
+          <Icon type="md-radio-button-off" size="25"></Icon>
+          <Progress class="progress_info" :percent="shield" :stroke-width="10" />
+        </Row>
+      </Card>
+    </div>
 
-      <div class="div_info">
-        <img class="img_info" src="../assets/score.svg" />
-        <span class="span_info" id="span_score">{{ score }}</span>
-      </div>
-    </div> -->
     <comMenu></comMenu>
     <comAlert v-show="alertPause"></comAlert>
+
     <Modal :closable="false" :mask-closable="false" v-model="modalHelp">
       <h1 slot="header" class="h1_modal">Help</h1>
       <div>
@@ -34,6 +75,7 @@
         <Button type="primary" size="large" @click="onStart">OK</Button>
       </div>
     </Modal>
+
     <Modal :closable="false" :mask-closable="false" v-model="modalResult">
       <h1 slot="header" class="h1_modal">Game Over</h1>
       <div>
@@ -67,12 +109,21 @@ export default {
       ctx: null,
       screenWidth: 0,
       screenHeight: 0,
-      hp: 0,
       score: 0,
+      hp: 100,
+      laser: 100,
+      nuclear: 100,
+      shield: 100,
       imgPlayer: null,
-      imgExplose: null,
+      imgExplosion: null,
       player: null,
       playerBullets: [],
+      enemies: [],
+      bosses: [],
+      blocks: [],
+      countEnemy: 7,
+      countBoss: 5,
+      countBlock: 6,
       isShotting: false,
       isLaser: false,
       isNuclear: false,
@@ -179,16 +230,46 @@ export default {
       this.screenHeight = this.canvas.height = window.innerHeight
     },
     prepareSrc: function () {
+      /** Player */
       this.imgPlayer = document.getElementById('img_player')
-      this.imgExplose = document.getElementById('img_explose')
+      this.imgExplosion = document.getElementById('img_explosion')
+      this.imgLaser = document.getElementById('img_laser')
+      this.imgNuclear = document.getElementById('img_nuclear')
+      this.imgShield = document.getElementById('img_shield')
       this.player = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.screenHeight - this.imgPlayer.height / 2,
         this.imgPlayer,
-        this.imgExplose
+        this.imgExplosion,
+        this.imgLaser,
+        this.imgShield
       )
       this.hp = this.player.hp
+
+      /** Enemy Normal */
+      for (var i = 0; i < this.countEnemy; i ++) {
+        var imgEnemy = document.getElementById('img_enemy' + i)
+        // TODO
+        var enemy
+        this.enemies.push(enemy)
+      }
+
+      /** Enemy Boss */
+      for (var j = 0; j < this.countBoss; j ++) {
+        var imgBoss = document.getElementById('img_boss' + j)
+        // TODO
+        var boss
+        this.bosses.push(boss)
+      }
+
+      /** Block */
+      for (var k = 0; k < this.countBlock; k ++) {
+        var imgBlock = document.getElementById('img_block' + k)
+        // TODO
+        var block
+        this.blocks.push(block)
+      }
     },
     attachListener: function () {
       document.getElementById('button_help').onclick = this.onHelp
@@ -379,6 +460,52 @@ export default {
   z-index: -1;
 }
 
+.div_info {
+  width: auto;
+  height: auto;
+  position: absolute;
+  left: 15px;
+  top: 15px;
+  text-align: left;
+  z-index: 1;
+}
+
+.card_info {
+  background: rgba(0, 0, 0, 0);
+}
+
+.row_score {
+  color: gold;
+}
+
+.row_hp {
+  color: red;
+}
+
+.row_laser {
+  color: yellow;
+}
+
+.row_nuclear {
+  color: darkorange;
+}
+
+.row_shield {
+  color: lightskyblue;
+}
+
+.span_score {
+  margin-left: 10px;
+  font-size: 16px;
+}
+
+.progress_info {
+  width: 150px;
+  margin-left: 5px;
+  margin-right: -20px;
+  font-size: 16px;
+}
+
 .h1_modal {
   color: #2db7f5;
   text-align: center;
@@ -390,52 +517,4 @@ export default {
   font-size: 18px;
   color: #515a6e;
 }
-/*
-#div_infos {
-  display: block;
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  align-items: center;
-  z-index: 9998;
-}
-
-.div_info {
-  margin: 10px auto;
-  padding: 3px 6px;
-  width: 100px;
-  height: auto;
-  display: flex;
-  display: -webkit-flex;
-  align-items: center;
-  background-color: rgba(196, 196, 196, 0.3);
-  border-radius: 10px;
-  border: solid rgb(29, 138, 248) 2px;
-}
-
-.img_info {
-  width: 25px;
-  height: 25px;
-}
-
-.span_info {
-  margin: 5px auto;
-  align-items: center;
-  font-size: 18px;
-  font-family: sans-serif, Arial, Helvetica;
-  cursor: default;
-}
-
-#span_level {
-  color: #00ff00;
-}
-
-#span_hp {
-  color: #FF0000;
-}
-
-#span_score {
-  color: #FFFF00;
-}
-*/
 </style>

@@ -1,16 +1,19 @@
 <template>
   <div>
     <canvas id="canvas_game">
-      <img class="img_plane" id="img_player1" src="../assets/player.svg" />
-      <img class="img_plane" id="img_player2" src="../assets/player2.png" />
-      <img class="img_plane" id="img_explose" src="../assets/explose.svg" />
+      <img class="img_src" id="img_player1" src="../assets/player.svg" />
+      <img class="img_src" id="img_player2" src="../assets/player2.png" />
+      <img class="img_src" id="img_explosion" src="../assets/explosion.svg" />
     </canvas>
+
     <div class="div_progress">
       <Progress class="progress_hp" :percent="hp2" :stroke-width="10" />
       <Progress class="progress_hp" :percent="hp1" :stroke-width="10" />
     </div>
+
     <comMenu></comMenu>
     <comAlert v-show="alertPause"></comAlert>
+
     <Modal :closable="false" :mask-closable="false" v-model="modalHelp">
       <h1 slot="header" class="h1_modal">Help</h1>
       <div>
@@ -23,6 +26,7 @@
         <Button type="primary" size="large" @click="onStart">OK</Button>
       </div>
     </Modal>
+
     <Modal :closable="false" :mask-closable="false" v-model="modalResult">
       <h1 slot="header" class="h1_modal">Game Over</h1>
       <div>
@@ -60,7 +64,7 @@ export default {
       hp2: 0,
       imgPlayer1: null,
       imgPlayer2: null,
-      imgExplose: null,
+      imgExplosion: null,
       player1: null,
       player2: null,
       bullets1: [],
@@ -173,20 +177,24 @@ export default {
     prepareSrc: function () {
       this.imgPlayer1 = document.getElementById('img_player1')
       this.imgPlayer2 = document.getElementById('img_player2')
-      this.imgExplose = document.getElementById('img_explose')
+      this.imgExplosion = document.getElementById('img_explosion')
       this.player1 = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.screenHeight - this.imgPlayer1.height / 2,
         this.imgPlayer1,
-        this.imgExplose
+        this.imgExplosion,
+        null,
+        null
       )
       this.player2 = new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.imgPlayer2.height / 2,
         this.imgPlayer2,
-        this.imgExplose
+        this.imgExplosion,
+        null,
+        null
       )
       this.hp1 = this.player1.hp
       this.hp2 = this.player2.hp

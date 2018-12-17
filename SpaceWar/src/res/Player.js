@@ -3,12 +3,14 @@ const PlayerConsts = {
   VELOCITY: 5
 }
 
-function Player (canvas, x, y, imgAlive, imgExplose) {
+function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
   this.imgAlive = imgAlive
-  this.imgExplose = imgExplose
+  this.imgExplosion = imgExplosion
+  this.imgLaser = imgLaser
+  this.imgShield = imgShield
   this.hp = PlayerConsts.HP
   this.velocity = PlayerConsts.VELOCITY
   this.originX = x
@@ -22,16 +24,24 @@ function Player (canvas, x, y, imgAlive, imgExplose) {
   this.mvLeft = false
   this.mvRight = false
   this.alive = true
+  this.laser = false
+  this.shield = false
 }
 
 Player.prototype.draw = function () {
   let imgTarget
-  if (this.alive) {
-    imgTarget = this.imgAlive
+  if (!this.alive) {
+    imgTarget = this.imgExplosion
+  } else if (this.shield) {
+    imgTarget = this.imgShield
   } else {
-    imgTarget = this.imgExplose
+    imgTarget = this.imgAlive
   }
   this.ctx.drawImage(imgTarget, this.x - imgTarget.width / 2, this.y - imgTarget.height / 2)
+  if (this.laser) {
+    this.ctx.drawImage(this.imgLaser, this.x - this.imgLaser.width / 2, this.y - imgTarget.height / 2 - this.imgLaser.height)
+    // TODO
+  }
 }
 
 Player.prototype.updateCoord = function () {
@@ -77,7 +87,7 @@ Player.prototype.getImg = function () {
   if (this.alive) {
     return this.imgAlive
   } else {
-    return this.imgExplose
+    return this.imgExplosion
   }
 }
 
@@ -112,6 +122,8 @@ Player.prototype.resetCoord = function () {
 Player.prototype.resetSource = function () {
   this.hp = PlayerConsts.HP
   this.alive = true
+  this.laser = false
+  this.shield = false
 }
 
 export default {
