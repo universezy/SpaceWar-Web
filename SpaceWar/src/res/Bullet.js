@@ -31,7 +31,7 @@ Bullet.prototype.draw = function () {
   this.ctx.fill()
 }
 
-Bullet.prototype.update = function () {
+Bullet.prototype.updateCoord = function () {
   this.x += this.offsetX * BulletConsts.VELOCITY
   if (this.x < this.minX || this.x > this.maxX) {
     this.show = false

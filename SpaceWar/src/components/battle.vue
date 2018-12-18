@@ -329,7 +329,7 @@ export default {
     onBullets: function () {
       for (var i = this.bullets1.length - 1; i >= 0; i--) {
         if (this.bullets1[i].show === true) {
-          this.bullets1[i].update()
+          this.bullets1[i].updateCoord()
           this.bullets1[i].draw()
           if (this.checkCollision(this.player2, this.bullets1[i])) {
             this.bullets1[i].show = false
@@ -341,7 +341,7 @@ export default {
       }
       for (var j = this.bullets2.length - 1; j >= 0; j--) {
         if (this.bullets2[j].show === true) {
-          this.bullets2[j].update()
+          this.bullets2[j].updateCoord()
           this.bullets2[j].draw()
           if (this.checkCollision(this.player1, this.bullets2[j])) {
             this.bullets2[j].show = false

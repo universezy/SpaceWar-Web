@@ -1,9 +1,9 @@
 const BossConsts = {
-  HP: 5000,
+  HP: 1000,
   VELOCITY: 2,
   DURATION: 100,
   SCORE: 500,
-  FREQUENCE: 10
+  FREQUENCE: 50
 }
 
 function Boss (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
@@ -78,8 +78,8 @@ Boss.prototype.updateHp = function (hp) {
       this.hp = 0
       this.alive = false
       return true
-    } else if (this.hp > 100) {
-      this.hp = 100
+    } else if (this.hp > BossConsts.HP) {
+      this.hp = BossConsts.HP
     }
   }
   return false

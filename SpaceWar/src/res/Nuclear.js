@@ -2,7 +2,7 @@ const NuclearConsts = {
   HP: 200,
   VELOCITY: 0.5,
   DURATION: 150,
-  ATTACK: 3
+  ATTACK: 5
 }
 
 function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
@@ -55,8 +55,8 @@ Nuclear.prototype.updateHp = function (hp) {
     if (this.hp <= 0) {
       this.hp = 0
       this.alive = false
-    } else if (this.hp > 100) {
-      this.hp = 100
+    } else if (this.hp > NuclearConsts.HP) {
+      this.hp = NuclearConsts.HP
     }
   }
 }

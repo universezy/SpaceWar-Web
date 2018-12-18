@@ -47,7 +47,6 @@ Block.prototype.updateCoord = function () {
   this.y += BlockConsts.VELOCITY * this.offsetY
   if (this.x + this.imgAlive.width / 2 < this.minX ||
     this.x - this.imgAlive.width / 2 > this.maxX ||
-    this.y + this.imgAlive.height / 2 < this.minY ||
     this.y - this.imgAlive.height / 2 > this.maxY) {
     this.show = false
   }
@@ -60,8 +59,8 @@ Block.prototype.updateHp = function (hp) {
       this.hp = 0
       this.alive = false
       return true
-    } else if (this.hp > 100) {
-      this.hp = 100
+    } else if (this.hp > BlockConsts.HP) {
+      this.hp = BlockConsts.HP
     }
   }
   return false

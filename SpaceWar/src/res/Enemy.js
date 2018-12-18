@@ -3,7 +3,7 @@ const EnemyConsts = {
   VELOCITY: 3,
   DURATION: 50,
   SCORE: 50,
-  FREQUENCE: 20
+  FREQUENCE: 100
 }
 
 function Enemy (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
@@ -78,8 +78,8 @@ Enemy.prototype.updateHp = function (hp) {
       this.hp = 0
       this.alive = false
       return true
-    } else if (this.hp > 100) {
-      this.hp = 100
+    } else if (this.hp > EnemyConsts.HP) {
+      this.hp = EnemyConsts.HP
     }
   }
   return false

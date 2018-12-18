@@ -24,7 +24,7 @@ function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
   this.maxY = canvas.height
   // init
   this.hp = PlayerConsts.HP
-  this.laserWidth = this.imgLaser.width * 2
+  this.laserWidth = this.imgLaser === null ? 0 : this.imgLaser.width * 2
   this.durationLaser = PlayerConsts.DURATION_LASER
   this.durationShield = PlayerConsts.DURATION_SHIELD
   // state
@@ -96,12 +96,13 @@ Player.prototype.updateCoord = function () {
 
 Player.prototype.updateHp = function (hp) {
   if (this.hp !== 0) {
+    if (this.shield && hp < 0) return
     this.hp += hp
     if (this.hp <= 0) {
       this.hp = 0
       this.alive = false
-    } else if (this.hp > 100) {
-      this.hp = 100
+    } else if (this.hp > PlayerConsts.HP) {
+      this.hp = PlayerConsts.HP
     }
   }
 }

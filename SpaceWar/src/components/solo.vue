@@ -133,17 +133,17 @@ export default {
       imgsBlock: [],
       /** Src */
       player: null,
-      playerBullets: [],
       nuclears: [],
       enemies: [],
       blocks: [],
       bosses: [],
+      playerBullets: [],
       enemyBullets: [],
-      maxCountEnemy: 10,
-      maxCountBoss: 2,
       countEnemy: 7,
       countBoss: 5,
       countBlock: 6,
+      maxCountEnemy: 10,
+      maxCountBoss: 2,
       /** Flag */
       gameState: -1,
       isShotting: false,
@@ -220,12 +220,15 @@ export default {
   methods: {
     /** Lifecycle */
     onPrepare: function () {
-      this.prepareSrc()
       if (this.gameState === mGame.GameState.CREATE) {
         this.prepareEnv()
         this.prepareImg()
+        this.prepareSrc()
         this.attachListener()
         this.modalHelp = true
+      } else {
+        this.prepareEnv()
+        this.prepareSrc()
       }
       this.gameState = mGame.GameState.PREPARE
     },
@@ -239,12 +242,13 @@ export default {
     onResume: function () {
       this.alertPause = false
       this.gameState = mGame.GameState.RUN
+      this.startSrcTasks()
       this.loop()
     },
     onPause: function () {
       this.isShotting = false
       this.player.resetStates()
-      this.clearTask()
+      this.clearSrcTasks()
       this.alertPause = true
       this.gameState = mGame.GameState.PAUSE
     },
@@ -252,12 +256,13 @@ export default {
       this.isShotting = false
       this.player.resetStates()
       this.timeoutIdStop = setTimeout(() => {
-        this.clearTask()
+        this.clearSrcTasks()
+        this.clearGameTasks()
         this.gameState = mGame.GameState.STOP
         this.modalResult = true
       }, 2000)
     },
-    /** Custom */
+    /** Prepare */
     prepareEnv: function () {
       this.canvas = document.getElementById('canvas_game')
       this.ctx = this.canvas.getContext('2d')
@@ -301,26 +306,6 @@ export default {
         var enemy = this.cerateRandomEnemy()
         this.enemies.push(enemy)
       }
-      this.timeoutIdEnemy = setInterval(() => {
-        if (this.enemies.length < this.maxCountEnemy) {
-          var enemy = this.cerateRandomEnemy()
-          this.enemies.push(enemy)
-        }
-      }, 2 * 1000)
-
-      /** Boss List */
-      this.timeoutIdBoss = setInterval(() => {
-        if (this.bosses.length < this.maxCountBoss) {
-          var boss = this.cerateRandomBoss()
-          this.bosses.push(boss)
-        }
-      }, 20 * 1000)
-
-      /** Block List */
-      this.timeoutIdBlock = setInterval(() => {
-        var block = this.cerateRandomBlock()
-        this.blocks.push(block)
-      }, 8 * 1000)
     },
     attachListener: function () {
       document.getElementById('button_help').onclick = this.onHelp
@@ -394,327 +379,7 @@ export default {
           break
       }
     },
-    loop: function () {
-      if (this.gameState !== mGame.GameState.RUN) return
-      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
-      this.loopPlayerSrc()
-      this.loopPlayerAttack()
-      this.loopOthersSrc()
-      this.loopOthersAttack()
-      this.animationIdLoop = requestAnimationFrame(this.loop)
-    },
-    loopPlayerSrc: function () {
-      this.player.updateCoord()
-      this.player.draw()
-      if (this.hp > 0 && this.isShotting && !this.player.laser && this.playerBullets.length < mBullet.BulletConsts.MAX_COUNT) {
-        var bullet = this.createPlayerBullet()
-        this.playerBullets.push(bullet)
-      }
-    },
-    loopPlayerAttack: function () {
-      /** Bullet */
-      for (let i = this.playerBullets.length - 1; i >= 0; i--) {
-        if (this.playerBullets[i].show) {
-          this.playerBullets[i].update()
-          this.playerBullets[i].draw()
-          /** Enemy */
-          for (let k = this.enemies.length - 1; k >= 0; k--) {
-            if (this.checkCollision(this.enemies[k], this.playerBullets[i])) {
-              this.playerBullets[i].show = false
-              if (this.enemies[k].updateHp(0 - mBullet.BulletConsts.ATTACK)) {
-                this.score += mEnemy.EnemyConsts.SCORE
-              }
-              break
-            }
-          }
-          if (this.playerBullets[i].show) {
-            /** Block */
-            for (let l = this.blocks.length - 1; l >= 0; l--) {
-              if (this.checkCollision(this.blocks[l], this.playerBullets[i])) {
-                this.playerBullets[i].show = false
-                if (this.blocks[l].updateHp(0 - mBullet.BulletConsts.ATTACK)) {
-                  this.score += mBlock.BlockConsts.SCORE
-                }
-                break
-              }
-            }
-            if (this.playerBullets[i].show) {
-              /** Boss */
-              for (let m = this.bosses.length - 1; m >= 0; m--) {
-                if (this.checkCollision(this.bosses[m], this.playerBullets[i])) {
-                  this.playerBullets[i].show = false
-                  if (this.bosses[m].updateHp(0 - mBullet.BulletConsts.ATTACK)) {
-                    this.score += mBoss.BossConsts.SCORE
-                  }
-                  break
-                }
-              }
-            }
-          }
-        } else {
-          this.playerBullets.splice(i, 1)
-        }
-      }
-      /** Laser */
-      if (this.player.laser) {
-        /** Enemy */
-        for (let r = this.enemies.length - 1; r >= 0; r--) {
-          if (this.checkLaserAttack(this.enemies[r])) {
-            if (this.enemies[r].updateHp(0 - this.player.mPlayer.PlayerConsts.ATTACK_LASER)) {
-              this.score += mEnemy.EnemyConsts.SCORE
-            }
-          }
-        }
-        /** Block */
-        for (let s = this.blocks.length - 1; s >= 0; s--) {
-          if (this.checkLaserAttack(this.blocks[s])) {
-            if (this.blocks[s].updateHp(0 - this.player.mPlayer.PlayerConsts.ATTACK_LASER)) {
-              this.score += mBlock.BlockConsts.SCORE
-            }
-          }
-        }
-        /** Boss */
-        for (let t = this.bosses.length - 1; t >= 0; t--) {
-          if (this.checkLaserAttack(this.bosses[t])) {
-            if (this.bosses[t].updateHp(0 - this.player.mPlayer.PlayerConsts.ATTACK_LASER)) {
-              this.score += mBoss.BossConsts.SCORE
-            }
-          }
-        }
-      }
-    },
-    loopOthersSrc: function () {
-      for (let i = this.enemies.length - 1; i >= 0; i--) {
-        if (this.enemies[i].show) {
-          this.enemies[i].updateCoord()
-          this.enemies[i].draw()
-          if (this.enemies[i].frequence === 0) {
-            var enemyBullet = this.createEnemyBullet(this.enemies[i])
-            this.enemyBullets.push(enemyBullet)
-          }
-        } else {
-          this.enemies.splice(i, 1)
-        }
-      }
-      for (let j = this.blocks.length - 1; j >= 0; j--) {
-        if (this.blocks[j].show) {
-          this.blocks[j].updateCoord()
-          this.blocks[j].draw()
-        } else {
-          this.blocks.splice(j, 1)
-        }
-      }
-      for (let k = this.bosses.length - 1; k >= 0; k--) {
-        if (this.bosses[k].show) {
-          this.bosses[k].updateCoord()
-          this.bosses[k].draw()
-          if (this.bosses[k].frequence === 0) {
-            var bossBullet = this.createEnemyBullet(this.bosses[k])
-            this.enemyBullets.push(bossBullet)
-          }
-        } else {
-          this.bosses.splice(k, 1)
-        }
-      }
-    },
-    loopOthersAttack: function () {
-      /** Bullet */
-      for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
-        if (this.enemyBullets[i].show) {
-          this.enemyBullets[i].updateCoord()
-          this.enemyBullets[i].draw()
-          /** Player */
-          if (this.checkCollision(this.player, this.enemyBullets[i])) {
-            this.enemyBullets[i].show = false
-            this.player.updateHp(0 - mBullet.BulletConsts.ATTACK)
-          } else {
-            /** Block */
-            for (let l = this.blocks.length - 1; l >= 0; l--) {
-              if (this.checkCollision(this.blocks[l], this.enemyBullets[i])) {
-                this.enemyBullets[i].show = false
-                this.blocks[l].updateHp(0 - mBullet.BulletConsts.ATTACK)
-                break
-              }
-            }
-            if (this.enemyBullets[i].show) {
-              /** Nuclear */
-              for (let m = this.nuclears.length - 1; m >= 0; m--) {
-                if (this.checkCollision(this.nuclears[m], this.enemyBullets[i])) {
-                  this.enemyBullets[i].show = false
-                  this.nuclears[m].updateHp(0 - mBullet.BulletConsts.ATTACK)
-                }
-              }
-            }
-          }
-        } else {
-          this.enemyBullets.splice(i, 1)
-        }
-      }
-      /** Nuclear */
-      for (let j = this.nuclears.length - 1; j >= 0; j--) {
-        if (this.nuclears[j].show) {
-          this.nuclears[j].updateCoord()
-          this.nuclears[j].draw()
-          if (!this.nuclears[j].alive) {
-            /** Enemy */
-            for (let o = this.enemies.length - 1; o >= 0; o--) {
-              if (this.checkCollision(this.enemies[o], this.nuclears[j])) {
-                this.enemies[o].updateHp(0 - mNuclear.NuclearConsts.ATTACK)
-              }
-            }
-            /** Block */
-            for (let p = this.blocks.length - 1; p >= 0; p--) {
-              if (this.checkCollision(this.blocks[p], this.nuclears[j])) {
-                this.blocks[p].updateHp(0 - mNuclear.NuclearConsts.ATTACK)
-              }
-            }
-            /** Boss */
-            for (let q = this.bosses.length - 1; q >= 0; q--) {
-              if (this.checkCollision(this.bosses[q], this.nuclears[j])) {
-                this.bosses[q].updateHp(0 - mNuclear.NuclearConsts.ATTACK)
-              }
-            }
-            /** Player */
-            if (this.checkCollision(this.player, this.nuclears[j])) {
-              this.player.updateHp(0 - mNuclear.NuclearConsts.ATTACK)
-            }
-          }
-        } else {
-          this.nuclears.splice(j, 1)
-        }
-      }
-    },
-    onLaser: function () {
-      if (this.laser === 100) {
-        this.laser = 0
-        this.player.onLaser()
-        this.timeoutIdLaser = setInterval(() => {
-          this.laser += 2
-          if (this.laser >= 100) {
-            this.laser = 100
-            clearInterval(this.timeoutIdLaser)
-          }
-        }, 1000)
-      }
-    },
-    onNuclear: function () {
-      if (this.nuclears.length > 0) {
-        for (var i = 0; i < this.nuclears.length; i++) {
-          if (this.nuclears[i].alive) {
-            this.nuclears[i].detonate()
-            return
-          }
-        }
-      }
-      if (this.nuclear === 100) {
-        this.nuclear = 0
-        var nuclear = this.createNuclear()
-        this.nuclears.push(nuclear)
-        this.timeoutIdNuclear = setInterval(() => {
-          this.nuclear += 2
-          if (this.nuclear >= 100) {
-            this.nuclear = 100
-            clearInterval(this.timeoutIdNuclear)
-          }
-        }, 1000)
-      }
-    },
-    onShield: function () {
-      if (this.shield === 100) {
-        this.shield = 0
-        this.player.onShield()
-        this.timeoutIdShield = setInterval(() => {
-          this.shield += 2
-          if (this.shield >= 100) {
-            this.shield = 100
-            clearInterval(this.timeoutIdShield)
-          }
-        }, 1000)
-      }
-    },
-    checkCollision: function (target, bullet) {
-      let distance = (target.getImg().height + bullet.size) / 2
-      let deltaX = target.x - bullet.x
-      let deltaY = target.y - bullet.y
-      if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) > Math.pow(distance, 2)) {
-        return false
-      } else {
-        return true
-      }
-    },
-    checkLaserAttack: function (target) {
-      let targetXLeft = target.x - target.getImg().width / 2
-      let targetXRight = target.x + target.getImg().width / 2
-      let targetYTop = target.y - target.getImg().height / 2
-      let laserXLeft = this.player.x - this.player.laserWidth / 2
-      let laserXRight = this.player.x + this.player.laserWidth / 2
-      let laserYBottom = this.player.y - this.imgPlayer.height / 2 - this.imgLaser.height
-      if (targetYTop < laserYBottom && targetXLeft < laserXRight && targetXRight > laserXLeft) {
-        console.log('check = true')
-        return true
-      } else {
-        console.log('check = false')
-        return false
-      }
-    },
-    updateHp: function (hp) {
-      if (!this.player.alive) return
-      this.player.updateHp(hp)
-      if (!this.player.alive) this.onStop()
-      return this.player.hp
-    },
-    changeState: function () {
-      if (this.gameState === mGame.GameState.PAUSE) {
-        this.onResume()
-      } else if (this.gameState === mGame.GameState.RUN) {
-        this.onPause()
-      }
-    },
-    onHelp: function () {
-      this.onPause()
-      this.modalHelp = true
-    },
-    onResult: function (result) {
-      this.modalResult = false
-      if (result) {
-        this.reload()
-      } else {
-        this.onResume()
-      }
-    },
-    clearTask: function () {
-      cancelAnimationFrame(this.animationIdLoop)
-      clearInterval(this.timeoutIdStop)
-      clearInterval(this.timeoutIdEnemy)
-      clearInterval(this.timeoutIdBlock)
-      clearInterval(this.timeoutIdBoss)
-      clearInterval(this.timeoutIdLaser)
-      clearInterval(this.timeoutIdNuclear)
-      clearInterval(this.timeoutIdShield)
-    },
-    reset: function () {
-      this.gameState = mGame.GameState.STOP
-      /** Handler */
-      this.clearTask()
-      /** Flag */
-      this.isShotting = false
-      /** Src */
-      this.playerBullets = []
-      this.nuclears = []
-      this.enemies = []
-      this.blocks = []
-      this.bosses = []
-      /** Binder */
-      this.score = 0
-      this.laser = 100
-      this.nuclear = 100
-      this.shield = 100
-    },
-    reload: function () {
-      this.reset()
-      this.onPrepare()
-      this.onStart()
-    },
+    /** Resource Loader */
     createPlayer: function () {
       var player = new mPlayer.Player(
         this.canvas,
@@ -741,19 +406,19 @@ export default {
     createEnemyBullet: function (enemy) {
       var bullet = new mBullet.Bullet(
         this.canvas,
-        this.enemy.x,
-        this.enemy.y + this.enemy.getImg().height / 2,
+        enemy.x,
+        enemy.y + enemy.getImg().height / 2,
         0,
-        1,
+        0.1,
         mBullet.BulletConsts.COLOR2
       )
       return bullet
     },
     cerateRandomEnemy: function () {
       let randomX = this.screenWidth * Math.random()
-      let randomY = 100 * Math.random() - 200
-      let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 1
-      let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.3
+      let randomY = 200 * Math.random() - 500
+      let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 0.5
+      let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.25
       let randomNum = Math.floor(this.countEnemy * Math.random())
       var enemy = new mEnemy.Enemy(
         this.canvas,
@@ -809,6 +474,387 @@ export default {
         this.imgNuclearExplosion
       )
       return nuclear
+    },
+    /** Draw */
+    loop: function () {
+      if (this.gameState !== mGame.GameState.RUN) return
+      this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
+      this.loopPlayerSrc()
+      this.loopOthersSrc()
+      this.loopPlayerAttack()
+      this.loopOthersAttack()
+      this.animationIdLoop = requestAnimationFrame(this.loop)
+    },
+    loopPlayerSrc: function () {
+      /** Nuclear */
+      for (let j = this.nuclears.length - 1; j >= 0; j--) {
+        if (this.nuclears[j].show) {
+          this.nuclears[j].updateCoord()
+          this.nuclears[j].draw()
+        } else {
+          this.nuclears.splice(j, 1)
+        }
+      }
+
+      /** Player */
+      this.player.updateCoord()
+      this.player.draw()
+      if (this.hp > 0 && this.isShotting && !this.player.laser && this.playerBullets.length < mBullet.BulletConsts.MAX_COUNT) {
+        var bullet = this.createPlayerBullet()
+        this.playerBullets.push(bullet)
+      }
+    },
+    loopPlayerAttack: function () {
+      /** Bullet */
+      for (let i = this.playerBullets.length - 1; i >= 0; i--) {
+        if (this.playerBullets[i].show) {
+          this.playerBullets[i].updateCoord()
+          this.playerBullets[i].draw()
+          /** Enemy */
+          for (let k = this.enemies.length - 1; k >= 0; k--) {
+            if (this.checkCollision(this.enemies[k], this.playerBullets[i], mBullet.BulletConsts.SIZE)) {
+              this.playerBullets[i].show = false
+              if (this.enemies[k].updateHp(0 - mBullet.BulletConsts.ATTACK)) {
+                this.score += mEnemy.EnemyConsts.SCORE
+              }
+              break
+            }
+          }
+          if (this.playerBullets[i].show) {
+            /** Block */
+            for (let l = this.blocks.length - 1; l >= 0; l--) {
+              if (this.checkCollision(this.blocks[l], this.playerBullets[i], mBullet.BulletConsts.SIZE)) {
+                this.playerBullets[i].show = false
+                if (this.blocks[l].updateHp(0 - mBullet.BulletConsts.ATTACK)) {
+                  this.score += mBlock.BlockConsts.SCORE
+                }
+                break
+              }
+            }
+            if (this.playerBullets[i].show) {
+              /** Boss */
+              for (let m = this.bosses.length - 1; m >= 0; m--) {
+                if (this.checkCollision(this.bosses[m], this.playerBullets[i], mBullet.BulletConsts.SIZE)) {
+                  this.playerBullets[i].show = false
+                  if (this.bosses[m].updateHp(0 - mBullet.BulletConsts.ATTACK)) {
+                    this.score += mBoss.BossConsts.SCORE
+                  }
+                  break
+                }
+              }
+            }
+          }
+        } else {
+          this.playerBullets.splice(i, 1)
+        }
+      }
+
+      /** Laser */
+      if (this.player.laser) {
+        /** Enemy */
+        for (let r = this.enemies.length - 1; r >= 0; r--) {
+          if (this.checkLaserAttack(this.enemies[r])) {
+            if (this.enemies[r].updateHp(0 - mPlayer.PlayerConsts.ATTACK_LASER)) {
+              this.score += mEnemy.EnemyConsts.SCORE
+            }
+          }
+        }
+        /** Block */
+        for (let s = this.blocks.length - 1; s >= 0; s--) {
+          if (this.checkLaserAttack(this.blocks[s])) {
+            if (this.blocks[s].updateHp(0 - mPlayer.PlayerConsts.ATTACK_LASER)) {
+              this.score += mBlock.BlockConsts.SCORE
+            }
+          }
+        }
+        /** Boss */
+        for (let t = this.bosses.length - 1; t >= 0; t--) {
+          if (this.checkLaserAttack(this.bosses[t])) {
+            if (this.bosses[t].updateHp(0 - mPlayer.PlayerConsts.ATTACK_LASER)) {
+              this.score += mBoss.BossConsts.SCORE
+            }
+          }
+        }
+      }
+    },
+    loopOthersSrc: function () {
+      /** Enemy */
+      for (let i = this.enemies.length - 1; i >= 0; i--) {
+        if (this.enemies[i].show) {
+          this.enemies[i].updateCoord()
+          this.enemies[i].draw()
+          if (this.enemies[i].frequence === 0) {
+            var enemyBullet = this.createEnemyBullet(this.enemies[i])
+            this.enemyBullets.push(enemyBullet)
+          }
+        } else {
+          this.enemies.splice(i, 1)
+        }
+      }
+
+      /** Block */
+      for (let j = this.blocks.length - 1; j >= 0; j--) {
+        if (this.blocks[j].show) {
+          this.blocks[j].updateCoord()
+          this.blocks[j].draw()
+        } else {
+          this.blocks.splice(j, 1)
+        }
+      }
+
+      /** Boss */
+      for (let k = this.bosses.length - 1; k >= 0; k--) {
+        if (this.bosses[k].show) {
+          this.bosses[k].updateCoord()
+          this.bosses[k].draw()
+          if (this.bosses[k].frequence === 0) {
+            var bossBullet = this.createEnemyBullet(this.bosses[k])
+            this.enemyBullets.push(bossBullet)
+          }
+        } else {
+          this.bosses.splice(k, 1)
+        }
+      }
+    },
+    loopOthersAttack: function () {
+      /** Bullet */
+      for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
+        if (this.enemyBullets[i].show) {
+          this.enemyBullets[i].updateCoord()
+          this.enemyBullets[i].draw()
+          /** Player */
+          if (this.checkCollision(this.player, this.enemyBullets[i], mBullet.BulletConsts.SIZE)) {
+            this.enemyBullets[i].show = false
+            this.updateHp(0 - mBullet.BulletConsts.ATTACK)
+            this.hp = this.player.hp
+          } else {
+            /** Block */
+            for (let l = this.blocks.length - 1; l >= 0; l--) {
+              if (this.checkCollision(this.blocks[l], this.enemyBullets[i], mBullet.BulletConsts.SIZE)) {
+                this.enemyBullets[i].show = false
+                this.blocks[l].updateHp(0 - mBullet.BulletConsts.ATTACK)
+                break
+              }
+            }
+            if (this.enemyBullets[i].show) {
+              /** Nuclear */
+              for (let m = this.nuclears.length - 1; m >= 0; m--) {
+                if (this.checkCollision(this.nuclears[m], this.enemyBullets[i], mBullet.BulletConsts.SIZE)) {
+                  this.enemyBullets[i].show = false
+                  this.nuclears[m].updateHp(0 - mBullet.BulletConsts.ATTACK)
+                }
+              }
+            }
+          }
+        } else {
+          this.enemyBullets.splice(i, 1)
+        }
+      }
+
+      /** Nuclear */
+      for (let j = this.nuclears.length - 1; j >= 0; j--) {
+        if (this.nuclears[j].show && !this.nuclears[j].alive) {
+          /** Enemy */
+          for (let o = this.enemies.length - 1; o >= 0; o--) {
+            if (this.checkCollision(this.enemies[o], this.nuclears[j], this.nuclears[j].size)) {
+              this.enemies[o].updateHp(0 - mNuclear.NuclearConsts.ATTACK)
+            }
+          }
+          /** Block */
+          for (let p = this.blocks.length - 1; p >= 0; p--) {
+            if (this.checkCollision(this.blocks[p], this.nuclears[j], this.nuclears[j].size)) {
+              this.blocks[p].updateHp(0 - mNuclear.NuclearConsts.ATTACK)
+            }
+          }
+          /** Boss */
+          for (let q = this.bosses.length - 1; q >= 0; q--) {
+            if (this.checkCollision(this.bosses[q], this.nuclears[j], this.nuclears[j].size)) {
+              this.bosses[q].updateHp(0 - mNuclear.NuclearConsts.ATTACK)
+            }
+          }
+          /** Player */
+          if (this.checkCollision(this.player, this.nuclears[j], this.nuclears[j].size)) {
+            this.updateHp(0 - mNuclear.NuclearConsts.ATTACK)
+          }
+        }
+      }
+    },
+    /** Task Scheduler */
+    startEnemyTask: function () {
+      this.timeoutIdEnemy = setInterval(() => {
+        if (this.enemies.length < this.maxCountEnemy) {
+          var enemy = this.cerateRandomEnemy()
+          this.enemies.push(enemy)
+        }
+      }, 2 * 1000)
+    },
+    startBlockTask: function () {
+      this.timeoutIdBlock = setInterval(() => {
+        var block = this.cerateRandomBlock()
+        this.blocks.push(block)
+      }, 8 * 1000)
+    },
+    startBossTask: function () {
+      this.timeoutIdBoss = setInterval(() => {
+        if (this.bosses.length < this.maxCountBoss) {
+          var boss = this.cerateRandomBoss()
+          this.bosses.push(boss)
+        }
+      }, 20 * 1000)
+    },
+    startLaserTask: function () {
+      this.timeoutIdLaser = setInterval(() => {
+        this.laser += 2
+        if (this.laser >= 100) {
+          this.laser = 100
+          clearInterval(this.timeoutIdLaser)
+        }
+      }, 1000)
+    },
+    startNuclearTask: function () {
+      this.timeoutIdNuclear = setInterval(() => {
+        this.nuclear += 2
+        if (this.nuclear >= 100) {
+          this.nuclear = 100
+          clearInterval(this.timeoutIdNuclear)
+        }
+      }, 1000)
+    },
+    startShieldTask: function () {
+      this.timeoutIdShield = setInterval(() => {
+        this.shield += 2
+        if (this.shield >= 100) {
+          this.shield = 100
+          clearInterval(this.timeoutIdShield)
+        }
+      }, 1000)
+    },
+    startSrcTasks: function () {
+      this.startEnemyTask()
+      this.startBlockTask()
+      this.startBossTask()
+      this.startLaserTask()
+      this.startNuclearTask()
+      this.startShieldTask()
+    },
+    clearSrcTasks: function () {
+      clearInterval(this.timeoutIdEnemy)
+      clearInterval(this.timeoutIdBlock)
+      clearInterval(this.timeoutIdBoss)
+      clearInterval(this.timeoutIdLaser)
+      clearInterval(this.timeoutIdNuclear)
+      clearInterval(this.timeoutIdShield)
+    },
+    clearGameTasks: function () {
+      cancelAnimationFrame(this.animationIdLoop)
+      clearInterval(this.timeoutIdStop)
+    },
+    /** Player Event */
+    onLaser: function () {
+      if (this.laser === 100) {
+        this.laser = 0
+        this.player.onLaser()
+        this.startLaserTask()
+      }
+    },
+    onNuclear: function () {
+      if (this.nuclears.length > 0) {
+        for (var i = 0; i < this.nuclears.length; i++) {
+          if (this.nuclears[i].alive) {
+            this.nuclears[i].detonate()
+            return
+          }
+        }
+      }
+      if (this.nuclear === 100) {
+        this.nuclear = 0
+        var nuclear = this.createNuclear()
+        this.nuclears.push(nuclear)
+        this.startNuclearTask()
+      }
+    },
+    onShield: function () {
+      if (this.shield === 100) {
+        this.shield = 0
+        this.player.onShield()
+        this.startShieldTask()
+      }
+    },
+    /** Game Helper */
+    checkCollision: function (target, bullet, size) {
+      let distance = (target.getImg().height + size) / 2
+      let deltaX = target.x - bullet.x
+      let deltaY = target.y - bullet.y
+      if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) > Math.pow(distance, 2)) {
+        return false
+      } else {
+        return true
+      }
+    },
+    checkLaserAttack: function (target) {
+      let targetXLeft = target.x - target.getImg().width / 2
+      let targetXRight = target.x + target.getImg().width / 2
+      let targetYTop = target.y - target.getImg().height / 2
+      let targetYBottom = target.y + target.getImg().height / 2
+      let laserXLeft = this.player.x - this.player.laserWidth / 2
+      let laserXRight = this.player.x + this.player.laserWidth / 2
+      let laserYBottom = this.player.y - this.imgPlayer.height / 2 - this.imgLaser.height
+      if (targetYBottom > 0 && targetYTop < laserYBottom && targetXLeft < laserXRight && targetXRight > laserXLeft) {
+        return true
+      } else {
+        return false
+      }
+    },
+    updateHp: function (hp) {
+      if (!this.player.alive) return
+      this.player.updateHp(hp)
+      this.hp = this.player.hp
+      if (!this.player.alive) this.onStop()
+    },
+    /** Game Event */
+    changeState: function () {
+      if (this.gameState === mGame.GameState.PAUSE) {
+        this.onResume()
+      } else if (this.gameState === mGame.GameState.RUN) {
+        this.onPause()
+      }
+    },
+    reset: function () {
+      this.gameState = mGame.GameState.STOP
+      /** Handler */
+      this.clearGameTasks()
+      this.clearSrcTasks()
+      /** Flag */
+      this.isShotting = false
+      /** Src */
+      this.playerBullets = []
+      this.enemyBullets = []
+      this.nuclears = []
+      this.enemies = []
+      this.blocks = []
+      this.bosses = []
+      /** Binder */
+      this.score = 0
+      this.laser = 100
+      this.nuclear = 100
+      this.shield = 100
+    },
+    reload: function () {
+      this.reset()
+      this.onPrepare()
+      this.onStart()
+    },
+    onHelp: function () {
+      this.onPause()
+      this.modalHelp = true
+    },
+    onResult: function (result) {
+      this.modalResult = false
+      if (result) {
+        this.reload()
+      } else {
+        this.onResume()
+      }
     }
   }
 }
