@@ -7,6 +7,7 @@ const PlayerConsts = {
 }
 
 function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
+  // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
@@ -14,16 +15,19 @@ function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
   this.imgExplosion = imgExplosion
   this.imgLaser = imgLaser
   this.imgShield = imgShield
+  // limit
   this.originX = x
   this.originY = y
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0
   this.maxY = canvas.height
+  // init
   this.hp = PlayerConsts.HP
-  this.velocity = PlayerConsts.VELOCITY
   this.laserWidth = this.imgLaser.width * 2
-  this.attackLaser = PlayerConsts.ATTACK_LASER
+  this.durationLaser = PlayerConsts.DURATION_LASER
+  this.durationShield = PlayerConsts.DURATION_SHIELD
+  // state
   this.mvUp = false
   this.mvDown = false
   this.mvLeft = false
@@ -31,8 +35,6 @@ function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
   this.alive = true
   this.laser = false
   this.shield = false
-  this.durationLaser = PlayerConsts.DURATION_LASER
-  this.durationShield = PlayerConsts.DURATION_SHIELD
 }
 
 Player.prototype.draw = function () {
@@ -67,25 +69,25 @@ Player.prototype.draw = function () {
 Player.prototype.updateCoord = function () {
   if (!this.alive) return
   if (this.mvUp) {
-    this.y -= this.velocity
+    this.y -= PlayerConsts.VELOCITY
     if (this.y < this.minY) {
       this.y = this.minY
     }
   }
   if (this.mvDown) {
-    this.y += this.velocity
+    this.y += PlayerConsts.VELOCITY
     if (this.y > this.maxY) {
       this.y = this.maxY
     }
   }
   if (this.mvLeft) {
-    this.x -= this.velocity
+    this.x -= PlayerConsts.VELOCITY
     if (this.x < this.minX) {
       this.x = this.minX
     }
   }
   if (this.mvRight) {
-    this.x += this.velocity
+    this.x += PlayerConsts.VELOCITY
     if (this.x > this.maxX) {
       this.x = this.maxX
     }

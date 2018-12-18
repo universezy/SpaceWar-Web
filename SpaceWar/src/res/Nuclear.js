@@ -1,11 +1,12 @@
 const NuclearConsts = {
-  HP: 300,
+  HP: 200,
   VELOCITY: 0.5,
   DURATION: 150,
   ATTACK: 3
 }
 
 function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
+  // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
@@ -13,13 +14,13 @@ function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.offsetY = offsetY
   this.imgAlive = imgAlive
   this.imgExplosion = imgExplosion
+  // init
+  this.hp = NuclearConsts.HP
+  this.duration = NuclearConsts.DURATION
   this.size = this.imgExplosion.width
+  // state
   this.alive = true
   this.show = true
-  this.hp = NuclearConsts.HP
-  this.velocity = NuclearConsts.VELOCITY
-  this.duration = NuclearConsts.DURATION
-  this.attack = NuclearConsts.ATTACK
 }
 
 Nuclear.prototype.draw = function () {
@@ -38,8 +39,8 @@ Nuclear.prototype.draw = function () {
 
 Nuclear.prototype.updateCoord = function () {
   if (!this.alive) return
-  this.x += this.velocity * this.offsetX
-  this.y += this.velocity * this.offsetY
+  this.x += NuclearConsts.VELOCITY * this.offsetX
+  this.y += NuclearConsts.VELOCITY * this.offsetY
   if (this.x + this.imgAlive.width / 2 < this.minX ||
     this.x - this.imgAlive.width / 2 > this.maxX ||
     this.y + this.imgAlive.height / 2 < this.minY ||

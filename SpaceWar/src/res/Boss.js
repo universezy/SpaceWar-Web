@@ -1,10 +1,13 @@
 const BossConsts = {
   HP: 5000,
   VELOCITY: 2,
-  DURATION: 100
+  DURATION: 100,
+  SCORE: 500,
+  FREQUENCE: 10
 }
 
 function Boss (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
+  // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
@@ -12,15 +15,18 @@ function Boss (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.offsetY = offsetY
   this.imgAlive = imgAlive
   this.imgExplosion = imgExplosion
-  this.hp = BossConsts.HP
-  this.velocity = BossConsts.VELOCITY
+  // limit
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0
   this.maxY = Math.min(canvas.height, 300)
+  // init
+  this.hp = BossConsts.HP
+  this.frequence = BossConsts.FREQUENCE
+  this.duration = BossConsts.DURATION
+  // state
   this.alive = true
   this.show = true
-  this.duration = BossConsts.DURATION
 }
 
 Boss.prototype.draw = function () {
@@ -33,13 +39,17 @@ Boss.prototype.draw = function () {
     }
   } else {
     imgTarget = this.imgAlive
+    this.frequence--
+    if (this.frequence < 0) {
+      this.frequence = BossConsts.FREQUENCE
+    }
   }
   this.ctx.drawImage(imgTarget, this.x - imgTarget.width / 2, this.y - imgTarget.height / 2)
 }
 
 Boss.prototype.updateCoord = function () {
   if (!this.alive) return
-  this.x += this.velocity * this.offsetX
+  this.x += BossConsts.VELOCITY * this.offsetX
   if (this.x <= this.minX) {
     this.x = this.minX
     this.offsetX = 0 - this.offsetX
@@ -48,9 +58,9 @@ Boss.prototype.updateCoord = function () {
     this.offsetX = 0 - this.offsetX
   }
   if (this.y <= this.minY && this.offsetY > 0) {
-    this.y += this.velocity * this.offsetY
+    this.y += BossConsts.VELOCITY * this.offsetY
   } else {
-    this.y += this.velocity * this.offsetY
+    this.y += BossConsts.VELOCITY * this.offsetY
     if (this.y <= this.minY) {
       this.y = this.minY
       this.offsetY = 0 - this.offsetY
@@ -67,10 +77,12 @@ Boss.prototype.updateHp = function (hp) {
     if (this.hp <= 0) {
       this.hp = 0
       this.alive = false
+      return true
     } else if (this.hp > 100) {
       this.hp = 100
     }
   }
+  return false
 }
 
 Boss.prototype.getImg = function () {

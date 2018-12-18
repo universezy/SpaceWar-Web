@@ -1,4 +1,5 @@
 const GameState = {
+  CREATE: -1,
   PREPARE: 0,
   START: 1,
   RUN: 2,

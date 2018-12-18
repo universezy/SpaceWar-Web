@@ -127,10 +127,10 @@ export default {
   methods: {
     /** Lifecycle */
     onPrepare: function () {
-      this.prepareEnv()
-      this.prepareSrc()
-      this.attachListener()
-      if (this.gameState === -1) {
+      if (this.gameState === mGame.GameState.CREATE) {
+        this.prepareEnv()
+        this.prepareSrc()
+        this.attachListener()
         this.modalHelp = true
       }
       this.gameState = mGame.GameState.PREPARE
@@ -333,7 +333,7 @@ export default {
           this.bullets1[i].draw()
           if (this.checkCollision(this.player2, this.bullets1[i])) {
             this.bullets1[i].show = false
-            this.hp2 = this.updateHp(this.player2, 0 - this.bullets1[i].attack, 1)
+            this.hp2 = this.updateHp(this.player2, 0 - mBullet.BulletConsts.ATTACK, 1)
           }
         } else {
           this.bullets1.splice(i, 1)
@@ -345,7 +345,7 @@ export default {
           this.bullets2[j].draw()
           if (this.checkCollision(this.player1, this.bullets2[j])) {
             this.bullets2[j].show = false
-            this.hp1 = this.updateHp(this.player1, 0 - this.bullets2[j].attack, 2)
+            this.hp1 = this.updateHp(this.player1, 0 - mBullet.BulletConsts.ATTACK, 2)
           }
         } else {
           this.bullets2.splice(j, 1)

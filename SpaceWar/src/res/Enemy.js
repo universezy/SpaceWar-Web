@@ -1,10 +1,13 @@
 const EnemyConsts = {
   HP: 50,
   VELOCITY: 3,
-  DURATION: 50
+  DURATION: 50,
+  SCORE: 50,
+  FREQUENCE: 20
 }
 
 function Enemy (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
+  // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
@@ -12,15 +15,18 @@ function Enemy (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.offsetY = offsetY
   this.imgAlive = imgAlive
   this.imgExplosion = imgExplosion
-  this.hp = EnemyConsts.HP
-  this.velocity = EnemyConsts.VELOCITY
+  // limit
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0
   this.maxY = canvas.height
+  // init
+  this.hp = EnemyConsts.HP
+  this.frequence = EnemyConsts.FREQUENCE
+  this.duration = EnemyConsts.DURATION
+  // state
   this.alive = true
   this.show = true
-  this.duration = EnemyConsts.DURATION
 }
 
 Enemy.prototype.draw = function () {
@@ -33,13 +39,17 @@ Enemy.prototype.draw = function () {
     }
   } else {
     imgTarget = this.imgAlive
+    this.frequence--
+    if (this.frequence < 0) {
+      this.frequence = EnemyConsts.FREQUENCE
+    }
   }
   this.ctx.drawImage(imgTarget, this.x - imgTarget.width / 2, this.y - imgTarget.height / 2)
 }
 
 Enemy.prototype.updateCoord = function () {
   if (!this.alive) return
-  this.x += this.velocity * this.offsetX
+  this.x += EnemyConsts.VELOCITY * this.offsetX
   if (this.x <= this.minX) {
     this.x = this.minX
     this.offsetX = 0 - this.offsetX
@@ -48,9 +58,9 @@ Enemy.prototype.updateCoord = function () {
     this.offsetX = 0 - this.offsetX
   }
   if (this.y <= this.minY && this.offsetY > 0) {
-    this.y += this.velocity * this.offsetY
+    this.y += EnemyConsts.VELOCITY * this.offsetY
   } else {
-    this.y += this.velocity * this.offsetY
+    this.y += EnemyConsts.VELOCITY * this.offsetY
     if (this.y <= this.minY) {
       this.y = this.minY
       this.offsetY = 0 - this.offsetY
@@ -67,11 +77,12 @@ Enemy.prototype.updateHp = function (hp) {
     if (this.hp <= 0) {
       this.hp = 0
       this.alive = false
+      return true
     } else if (this.hp > 100) {
       this.hp = 100
     }
   }
-  console.log('rest hp = ' + this.hp)
+  return false
 }
 
 Enemy.prototype.getImg = function () {

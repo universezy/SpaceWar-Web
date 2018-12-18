@@ -1,10 +1,12 @@
 const BlockConsts = {
   HP: 150,
   VELOCITY: 0.5,
-  DURATION: 30
+  DURATION: 30,
+  SCORE: 30
 }
 
 function Block (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
+  // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
@@ -12,15 +14,17 @@ function Block (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.offsetY = offsetY
   this.imgAlive = imgAlive
   this.imgExplosion = imgExplosion
-  this.hp = BlockConsts.HP
-  this.velocity = BlockConsts.VELOCITY
+  // limit
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0
   this.maxY = canvas.height
+  // init
+  this.hp = BlockConsts.HP
+  this.duration = BlockConsts.DURATION
+  // state
   this.alive = true
   this.show = true
-  this.duration = BlockConsts.DURATION
 }
 
 Block.prototype.draw = function () {
@@ -39,8 +43,8 @@ Block.prototype.draw = function () {
 
 Block.prototype.updateCoord = function () {
   if (!this.alive) return
-  this.x += this.velocity * this.offsetX
-  this.y += this.velocity * this.offsetY
+  this.x += BlockConsts.VELOCITY * this.offsetX
+  this.y += BlockConsts.VELOCITY * this.offsetY
   if (this.x + this.imgAlive.width / 2 < this.minX ||
     this.x - this.imgAlive.width / 2 > this.maxX ||
     this.y + this.imgAlive.height / 2 < this.minY ||
@@ -55,10 +59,12 @@ Block.prototype.updateHp = function (hp) {
     if (this.hp <= 0) {
       this.hp = 0
       this.alive = false
+      return true
     } else if (this.hp > 100) {
       this.hp = 100
     }
   }
+  return false
 }
 
 Block.prototype.getImg = function () {

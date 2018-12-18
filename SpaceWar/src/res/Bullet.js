@@ -8,35 +8,35 @@ const BulletConsts = {
 }
 
 function Bullet (canvas, x, y, offsetX, offsetY, color) {
+  // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
   this.offsetX = offsetX
   this.offsetY = offsetY
   this.color = color
-  this.size = BulletConsts.SIZE
-  this.attack = BulletConsts.ATTACK
-  this.velocity = BulletConsts.VELOCITY
+  // limit
   this.minX = 0
   this.maxX = canvas.width
   this.minY = 0
   this.maxY = canvas.height
+  // state
   this.show = true
 }
 
 Bullet.prototype.draw = function () {
   this.ctx.beginPath()
   this.ctx.fillStyle = this.color
-  this.ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
+  this.ctx.arc(this.x, this.y, BulletConsts.SIZE, 0, 2 * Math.PI)
   this.ctx.fill()
 }
 
 Bullet.prototype.update = function () {
-  this.x += this.offsetX * this.velocity
+  this.x += this.offsetX * BulletConsts.VELOCITY
   if (this.x < this.minX || this.x > this.maxX) {
     this.show = false
   }
-  this.y += this.offsetY * this.velocity
+  this.y += this.offsetY * BulletConsts.VELOCITY
   if (this.y < this.minY || this.y > this.maxY) {
     this.show = false
   }
