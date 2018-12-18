@@ -123,6 +123,8 @@ export default {
       imgExplosion: null,
       imgNuclear: null,
       imgNuclearExplosion: null,
+      imgLaser: null,
+      imgShield: null,
       imgsEnemy: [],
       imgsBoss: [],
       imgsBlock: [],
@@ -131,7 +133,9 @@ export default {
       nuclears: [],
       enemies: [],
       blocks: [],
+      bosses: [],
       maxCountEnemy: 10,
+      maxCountBoss: 2,
       countEnemy: 7,
       countBoss: 5,
       countBlock: 6,
@@ -161,6 +165,10 @@ export default {
         {
           title: 'Key',
           key: 'keySkill'
+        },
+        {
+          title: 'Tips',
+          key: 'tip'
         }
       ],
       dataController: [
@@ -168,25 +176,29 @@ export default {
           direction: 'Move up',
           keyDir: 'W',
           skill: 'Shot',
-          keySkill: 'J'
+          keySkill: 'J',
+          tip: 'Count limited.'
         },
         {
           direction: 'Move down',
           keyDir: 'S',
           skill: 'Laser',
-          keySkill: 'K'
+          keySkill: 'K',
+          tip: 'Better attack.'
         },
         {
           direction: 'Move left',
           keyDir: 'A',
           skill: 'Nuclear',
-          keySkill: 'L'
+          keySkill: 'L',
+          tip: 'Most dangerous.'
         },
         {
           direction: 'Move right',
           keyDir: 'D',
           skill: 'Shield',
-          keySkill: 'I'
+          keySkill: 'I',
+          tip: 'Save life.'
         }
       ]
     }
@@ -241,23 +253,13 @@ export default {
       this.screenHeight = this.canvas.height = window.innerHeight
     },
     prepareSrc: function () {
-      /** Player */
+      /** Player Img */
       this.imgPlayer = document.getElementById('img_player')
       this.imgExplosion = document.getElementById('img_explosion')
       this.imgNuclear = document.getElementById('img_nuclear')
       this.imgNuclearExplosion = document.getElementById('img_nuclear_explosion')
-      var imgLaser = document.getElementById('img_laser')
-      var imgShield = document.getElementById('img_shield')
-      this.player = new mPlayer.Player(
-        this.canvas,
-        this.screenWidth / 2,
-        this.screenHeight - this.imgPlayer.height / 2,
-        this.imgPlayer,
-        this.imgExplosion,
-        imgLaser,
-        imgShield
-      )
-      this.hp = this.player.hp
+      this.imgLaser = document.getElementById('img_laser')
+      this.imgShield = document.getElementById('img_shield')
 
       /** Enemy Img */
       for (var i = 0; i < this.countEnemy; i++) {
@@ -277,11 +279,35 @@ export default {
         this.imgsBlock.push(imgBlock)
       }
 
+      /** Player Src */
+      this.player = this.createPlayer()
+      this.hp = this.player.hp
+
       /** Enemy List */
       for (var l = 0; l < this.maxCountEnemy; l++) {
         var enemy = this.cerateRandomEnemy()
         this.enemies.push(enemy)
       }
+      setInterval(() => {
+        if (this.enemies.length < this.maxCountEnemy) {
+          var enemy = this.cerateRandomEnemy()
+          this.enemies.push(enemy)
+        }
+      }, 2 * 1000)
+
+      /** Boss List */
+      setInterval(() => {
+        if (this.bosses.length < this.maxCountBoss) {
+          var boss = this.cerateRandomBoss()
+          this.bosses.push(boss)
+        }
+      }, 20 * 1000)
+
+      /** Block List */
+      setInterval(() => {
+        var block = this.cerateRandomBlock()
+        this.blocks.push(block)
+      }, 8 * 1000)
     },
     attachListener: function () {
       document.getElementById('button_help').onclick = this.onHelp
@@ -359,9 +385,9 @@ export default {
       if (this.gameState !== mGame.GameState.RUN) return
       this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
       this.loopPlayerSrc()
-      this.loopEnemiesAndBossSrc()
       this.loopPlayerAttack()
-      this.loopEnemiesAndBossAttack()
+      this.loopOthersSrc()
+      this.loopOthersAttack()
       this.handlerIdLoop = requestAnimationFrame(this.loop)
     },
     loopPlayerSrc: function () {
@@ -372,35 +398,134 @@ export default {
         this.playerBullets.push(bullet)
       }
     },
-    loopEnemiesAndBossSrc: function () {
-      for (var i = this.enemies.length - 1; i >= 0; i--) {
-        this.enemies[i].updateCoord()
-        this.enemies[i].draw()
-        // TODO shot
-      }
-    },
     loopPlayerAttack: function () {
-      for (var i = this.playerBullets.length - 1; i >= 0; i--) {
-        if (this.playerBullets[i].show === true) {
+      /** Bullet */
+      for (let i = this.playerBullets.length - 1; i >= 0; i--) {
+        if (this.playerBullets[i].show) {
           this.playerBullets[i].update()
           this.playerBullets[i].draw()
-          // TODO checkCollision
+          let collision = false
+          /** Enemy */
+          for (let k = this.enemies.length - 1; k >= 0; k--) {
+            if (this.checkCollision(this.enemies[k], this.playerBullets[i])) {
+              this.playerBullets[i].show = false
+              this.enemies[k].updateHp(0 - this.playerBullets[i].attack)
+              collision = true
+              break
+            }
+          }
+          /** Block */
+          if (!collision) {
+            for (let l = this.blocks.length - 1; l >= 0; l--) {
+              if (this.checkCollision(this.blocks[l], this.playerBullets[i])) {
+                this.playerBullets[i].show = false
+                this.blocks[l].updateHp(0 - this.playerBullets[i].attack)
+                collision = true
+                break
+              }
+            }
+          } else {
+            continue
+          }
+          /** Boss */
+          if (!collision) {
+            for (let m = this.bosses.length - 1; m >= 0; m--) {
+              if (this.checkCollision(this.bosses[m], this.playerBullets[i])) {
+                this.playerBullets[i].show = false
+                this.bosses[m].updateHp(0 - this.playerBullets[i].attack)
+                break
+              }
+            }
+          }
         } else {
           this.playerBullets.splice(i, 1)
         }
       }
-      for (var j = this.nuclears.length - 1; j >= 0; j--) {
-        if (this.nuclears[j].show === true) {
+      /** Laser */
+      if (this.player.laser) {
+        /** Enemy */
+        for (let r = this.enemies.length - 1; r >= 0; r--) {
+          if (this.checkLaserAttack(this.enemies[r])) {
+            this.enemies[r].updateHp(0 - this.player.attackLaser)
+          }
+        }
+        /** Block */
+        for (let s = this.blocks.length - 1; s >= 0; s--) {
+          if (this.checkLaserAttack(this.blocks[s])) {
+            this.blocks[s].updateHp(0 - this.player.attackLaser)
+          }
+        }
+        /** Boss */
+        for (let t = this.bosses.length - 1; t >= 0; t--) {
+          if (this.checkLaserAttack(this.bosses[t])) {
+            this.bosses[t].updateHp(0 - this.player.attackLaser)
+          }
+        }
+      }
+    },
+    loopOthersSrc: function () {
+      for (let i = this.enemies.length - 1; i >= 0; i--) {
+        if (this.enemies[i].show) {
+          this.enemies[i].updateCoord()
+          this.enemies[i].draw()
+          // TODO shot
+        } else {
+          this.enemies.splice(i, 1)
+        }
+      }
+      for (let j = this.blocks.length - 1; j >= 0; j--) {
+        if (this.blocks[j].show) {
+          this.blocks[j].updateCoord()
+          this.blocks[j].draw()
+        } else {
+          this.blocks.splice(j, 1)
+        }
+      }
+      for (let k = this.bosses.length - 1; k >= 0; k--) {
+        if (this.bosses[k].show) {
+          this.bosses[k].updateCoord()
+          this.bosses[k].draw()
+          // TODO shot
+        } else {
+          this.bosses.splice(k, 1)
+        }
+      }
+    },
+    loopOthersAttack: function () {
+      // TODO
+      /** Nuclear */
+      for (let j = this.nuclears.length - 1; j >= 0; j--) {
+        if (this.nuclears[j].show) {
           this.nuclears[j].updateCoord()
           this.nuclears[j].draw()
-          // TODO checkCollision
+          if (!this.nuclears[j].alive) {
+            /** Enemy */
+            for (let o = this.enemies.length - 1; o >= 0; o--) {
+              if (this.checkCollision(this.enemies[o], this.nuclears[j])) {
+                this.enemies[o].updateHp(0 - this.nuclears[j].attack)
+              }
+            }
+            /** Block */
+            for (let p = this.blocks.length - 1; p >= 0; p--) {
+              if (this.checkCollision(this.blocks[p], this.nuclears[j])) {
+                this.blocks[p].updateHp(0 - this.nuclears[j].attack)
+              }
+            }
+            /** Boss */
+            for (let q = this.bosses.length - 1; q >= 0; q--) {
+              if (this.checkCollision(this.bosses[q], this.nuclears[j])) {
+                this.bosses[q].updateHp(0 - this.nuclears[j].attack)
+              }
+            }
+            /** Player */
+            if (this.checkCollision(this.player, this.nuclears[j])) {
+              this.player.updateHp(0 - this.nuclears[j].attack)
+            }
+          }
         } else {
           this.nuclears.splice(j, 1)
         }
       }
-    },
-    loopEnemiesAndBossAttack: function () {
-      // TODO
     },
     onLaser: function () {
       if (this.laser === 100) {
@@ -418,7 +543,7 @@ export default {
     onNuclear: function () {
       if (this.nuclears.length > 0) {
         for (var i = 0; i < this.nuclears.length; i++) {
-          if (this.nuclears[i].alive === true) {
+          if (this.nuclears[i].alive) {
             this.nuclears[i].detonate()
             return
           }
@@ -450,14 +575,29 @@ export default {
         }, 1000)
       }
     },
-    checkCollision: function (plane, bullet) {
-      let distance = (plane.getImg().width + mBullet.BulletConsts.SIZE) / 2
-      let deltaX = plane.x - bullet.x
-      let deltaY = plane.y - bullet.y
+    checkCollision: function (target, bullet) {
+      let distance = (target.getImg().height + bullet.size) / 2
+      let deltaX = target.x - bullet.x
+      let deltaY = target.y - bullet.y
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) > Math.pow(distance, 2)) {
         return false
       } else {
         return true
+      }
+    },
+    checkLaserAttack: function (target) {
+      let targetXLeft = target.x - target.getImg().width / 2
+      let targetXRight = target.x + target.getImg().width / 2
+      let targetYTop = target.y - target.getImg().height / 2
+      let laserXLeft = this.player.x - this.player.laserWidth / 2
+      let laserXRight = this.player.x + this.player.laserWidth / 2
+      let laserYBottom = this.player.y - this.imgPlayer.height / 2 - this.imgLaser.height
+      if (targetYTop < laserYBottom && targetXLeft < laserXRight && targetXRight > laserXLeft) {
+        console.log('check = true')
+        return true
+      } else {
+        console.log('check = false')
+        return false
       }
     },
     updateHp: function (hp) {
@@ -500,9 +640,22 @@ export default {
       // TODO
     },
     reload: function () {
-      this.reset()
-      this.onPrepare()
-      this.onStart()
+      this.$router.push('/solo')
+      // this.reset()
+      // this.onPrepare()
+      // this.onStart()
+    },
+    createPlayer: function () {
+      var player = new mPlayer.Player(
+        this.canvas,
+        this.screenWidth / 2,
+        this.screenHeight - this.imgPlayer.height / 2,
+        this.imgPlayer,
+        this.imgExplosion,
+        this.imgLaser,
+        this.imgShield
+      )
+      return player
     },
     createPlayerBullet: function () {
       var bullet = new mBullet.Bullet(
@@ -528,7 +681,7 @@ export default {
     },
     cerateRandomEnemy: function () {
       let randomX = this.screenWidth * Math.random()
-      let randomY = -1000 * Math.random()
+      let randomY = 100 * Math.random() - 200
       let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 1
       let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.3
       let randomNum = Math.floor(this.countEnemy * Math.random())
@@ -544,11 +697,35 @@ export default {
       return enemy
     },
     cerateRandomBoss: function () {
-      var boss = new mBoss.Boss()
+      let randomX = this.screenWidth * Math.random()
+      let randomY = 100 * Math.random() - 200
+      let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 0.5
+      let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.3
+      let randomNum = Math.floor(this.countBoss * Math.random())
+      var boss = new mBoss.Boss(
+        this.canvas,
+        randomX,
+        randomY,
+        randomDx,
+        randomDy,
+        this.imgsBoss[randomNum],
+        this.imgExplosion
+      )
       return boss
     },
     cerateRandomBlock: function () {
-      var block = new mBlock.Block()
+      let randomX = this.screenWidth * Math.random()
+      let randomY = 20 * Math.random() - 100
+      let randomNum = Math.floor(this.countBlock * Math.random())
+      var block = new mBlock.Block(
+        this.canvas,
+        randomX,
+        randomY,
+        0,
+        1,
+        this.imgsBlock[randomNum],
+        this.imgExplosion
+      )
       return block
     },
     createNuclear: function () {

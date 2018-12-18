@@ -2,7 +2,8 @@ const PlayerConsts = {
   HP: 100,
   VELOCITY: 5,
   DURATION_LASER: 200,
-  DURATION_SHIELD: 300
+  DURATION_SHIELD: 300,
+  ATTACK_LASER: 3
 }
 
 function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
@@ -21,6 +22,8 @@ function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
   this.maxY = canvas.height
   this.hp = PlayerConsts.HP
   this.velocity = PlayerConsts.VELOCITY
+  this.laserWidth = this.imgLaser.width * 2
+  this.attackLaser = PlayerConsts.ATTACK_LASER
   this.mvUp = false
   this.mvDown = false
   this.mvLeft = false
@@ -48,12 +51,12 @@ Player.prototype.draw = function () {
   this.ctx.drawImage(imgTarget, this.x - imgTarget.width / 2, this.y - imgTarget.height / 2)
   if (this.laser) {
     this.ctx.drawImage(this.imgLaser, this.x - this.imgLaser.width / 2, this.y - imgTarget.height / 2 - this.imgLaser.height)
-    var gradient = this.ctx.createLinearGradient(this.x - this.imgLaser.width, 0, this.x + this.imgLaser.width, 0)
+    var gradient = this.ctx.createLinearGradient(this.x - this.laserWidth / 2, 0, this.x + this.laserWidth / 2, 0)
     gradient.addColorStop(0, 'rgba(255,128,128,0.6)')
     gradient.addColorStop(0.5, 'rgba(255,0,0,0.9)')
     gradient.addColorStop(1, 'rgba(255,128,128,0.6)')
     this.ctx.fillStyle = gradient
-    this.ctx.fillRect(this.x - this.imgLaser.width, 0, this.imgLaser.width * 2, this.y - imgTarget.height / 2 - this.imgLaser.height)
+    this.ctx.fillRect(this.x - this.imgLaser.width, 0, this.laserWidth, this.y - imgTarget.height / 2 - this.imgLaser.height)
     this.durationLaser--
     if (this.durationLaser === 0) {
       this.laser = false

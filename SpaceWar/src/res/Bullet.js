@@ -24,6 +24,13 @@ function Bullet (canvas, x, y, offsetX, offsetY, color) {
   this.show = true
 }
 
+Bullet.prototype.draw = function () {
+  this.ctx.beginPath()
+  this.ctx.fillStyle = this.color
+  this.ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
+  this.ctx.fill()
+}
+
 Bullet.prototype.update = function () {
   this.x += this.offsetX * this.velocity
   if (this.x < this.minX || this.x > this.maxX) {
@@ -33,13 +40,6 @@ Bullet.prototype.update = function () {
   if (this.y < this.minY || this.y > this.maxY) {
     this.show = false
   }
-}
-
-Bullet.prototype.draw = function () {
-  this.ctx.beginPath()
-  this.ctx.fillStyle = this.color
-  this.ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
-  this.ctx.fill()
 }
 
 export default {

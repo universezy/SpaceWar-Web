@@ -1,7 +1,8 @@
 const NuclearConsts = {
   HP: 300,
   VELOCITY: 0.5,
-  DURATION: 300
+  DURATION: 150,
+  ATTACK: 3
 }
 
 function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
@@ -12,11 +13,13 @@ function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.offsetY = offsetY
   this.imgAlive = imgAlive
   this.imgExplosion = imgExplosion
+  this.size = this.imgExplosion.width
   this.alive = true
   this.show = true
   this.hp = NuclearConsts.HP
   this.velocity = NuclearConsts.VELOCITY
   this.duration = NuclearConsts.DURATION
+  this.attack = NuclearConsts.ATTACK
 }
 
 Nuclear.prototype.draw = function () {

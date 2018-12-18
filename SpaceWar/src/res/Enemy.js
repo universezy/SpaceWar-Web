@@ -1,7 +1,7 @@
 const EnemyConsts = {
-  HP: 80,
+  HP: 50,
   VELOCITY: 3,
-  DURATION: 100
+  DURATION: 50
 }
 
 function Enemy (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
@@ -71,6 +71,7 @@ Enemy.prototype.updateHp = function (hp) {
       this.hp = 100
     }
   }
+  console.log('rest hp = ' + this.hp)
 }
 
 Enemy.prototype.getImg = function () {
