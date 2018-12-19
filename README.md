@@ -40,9 +40,9 @@
 - 打爆对方获胜
 
 ---
-## 体验
+## 立即体验
 
-[SpaceWar online]()
+[SpaceWar online](https://frogfans.github.io/res/html/SpaceWar/index.html#/)
 
 ---
 ## 反馈
