@@ -200,6 +200,7 @@ export default {
       this.hp2 = this.player2.hp
     },
     attachListener: function () {
+      document.getElementById('button_home').onclick = this.onHome
       document.getElementById('button_help').onclick = this.onHelp
       document.getElementById('button_restart').onclick = this.restart
       if (typeof window.addEventListener !== 'undefined') {
@@ -336,6 +337,7 @@ export default {
             this.hp2 = this.updateHp(this.player2, 0 - mBullet.BulletConsts.ATTACK, 1)
           }
         } else {
+          this.bullets1[i].disappear()
           this.bullets1.splice(i, 1)
         }
       }
@@ -348,6 +350,7 @@ export default {
             this.hp1 = this.updateHp(this.player1, 0 - mBullet.BulletConsts.ATTACK, 2)
           }
         } else {
+          this.bullets2[j].disappear()
           this.bullets2.splice(j, 1)
         }
       }
@@ -378,6 +381,10 @@ export default {
         this.onPause()
       }
     },
+    onHome: function () {
+      this.reset()
+      this.$router.push('/')
+    },
     onHelp: function () {
       this.onPause()
       this.modalHelp = true
@@ -404,7 +411,13 @@ export default {
       this.player2.resetSource()
       this.hp1 = this.player1.hp
       this.hp2 = this.player2.hp
+      for (var i = 0; i < this.bullets1.length; i++) {
+        this.bullets1[i].disappear()
+      }
       this.bullets1 = []
+      for (var j = 0; j < this.bullets2.length; j++) {
+        this.bullets2[j].disappear()
+      }
       this.bullets2 = []
     },
     reload: function () {

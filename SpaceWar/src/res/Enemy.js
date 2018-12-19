@@ -29,8 +29,14 @@ function Enemy (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.show = true
 }
 
+Enemy.prototype.release = function () {
+  this.ctx = null
+  this.imgAlive = null
+  this.imgExplosion = null
+}
+
 Enemy.prototype.draw = function () {
-  let imgTarget
+  var imgTarget
   if (!this.alive) {
     imgTarget = this.imgExplosion
     this.duration--
@@ -78,19 +84,13 @@ Enemy.prototype.updateHp = function (hp) {
       this.hp = 0
       this.alive = false
       return true
-    } else if (this.hp > EnemyConsts.HP) {
-      this.hp = EnemyConsts.HP
     }
   }
   return false
 }
 
 Enemy.prototype.getImg = function () {
-  if (this.alive) {
-    return this.imgAlive
-  } else {
-    return this.imgExplosion
-  }
+  return this.alive ? this.imgAlive : this.imgExplosion
 }
 
 export default {

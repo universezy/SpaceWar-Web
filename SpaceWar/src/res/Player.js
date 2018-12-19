@@ -23,8 +23,8 @@ function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
   this.minY = 0
   this.maxY = canvas.height
   // init
-  this.hp = PlayerConsts.HP
   this.laserWidth = this.imgLaser === null ? 0 : this.imgLaser.width * 2
+  this.hp = PlayerConsts.HP
   this.durationLaser = PlayerConsts.DURATION_LASER
   this.durationShield = PlayerConsts.DURATION_SHIELD
   // state
@@ -38,7 +38,7 @@ function Player (canvas, x, y, imgAlive, imgExplosion, imgLaser, imgShield) {
 }
 
 Player.prototype.draw = function () {
-  let imgTarget
+  var imgTarget
   if (!this.alive) {
     imgTarget = this.imgExplosion
   } else if (this.shield) {
@@ -64,6 +64,14 @@ Player.prototype.draw = function () {
       this.laser = false
     }
   }
+}
+
+Player.prototype.release = function () {
+  this.ctx = null
+  this.imgAlive = null
+  this.imgExplosion = null
+  this.imgLaser = null
+  this.imgShield = null
 }
 
 Player.prototype.updateCoord = function () {
@@ -95,24 +103,18 @@ Player.prototype.updateCoord = function () {
 }
 
 Player.prototype.updateHp = function (hp) {
-  if (this.hp !== 0) {
-    if (this.shield && hp < 0) return
-    this.hp += hp
-    if (this.hp <= 0) {
-      this.hp = 0
-      this.alive = false
-    } else if (this.hp > PlayerConsts.HP) {
-      this.hp = PlayerConsts.HP
-    }
+  if (this.hp === 0 || (this.shield && hp < 0)) return
+  this.hp += hp
+  if (this.hp <= 0) {
+    this.hp = 0
+    this.alive = false
+  } else if (this.hp > PlayerConsts.HP) {
+    this.hp = PlayerConsts.HP
   }
 }
 
 Player.prototype.getImg = function () {
-  if (this.alive) {
-    return this.imgAlive
-  } else {
-    return this.imgExplosion
-  }
+  return this.alive ? this.imgAlive : this.imgExplosion
 }
 
 Player.prototype.setUp = function (status) {
@@ -132,17 +134,15 @@ Player.prototype.setRight = function (status) {
 }
 
 Player.prototype.onLaser = function () {
-  if (!this.laser) {
-    this.durationLaser = PlayerConsts.DURATION_LASER
-    this.laser = true
-  }
+  if (this.laser) return
+  this.durationLaser = PlayerConsts.DURATION_LASER
+  this.laser = true
 }
 
 Player.prototype.onShield = function () {
-  if (!this.shield) {
-    this.durationShield = PlayerConsts.DURATION_SHIELD
-    this.shield = true
-  }
+  if (this.shield) return
+  this.durationShield = PlayerConsts.DURATION_SHIELD
+  this.shield = true
 }
 
 Player.prototype.resetStates = function () {

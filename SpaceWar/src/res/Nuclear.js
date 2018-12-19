@@ -1,19 +1,21 @@
 const NuclearConsts = {
   HP: 200,
-  VELOCITY: 0.5,
+  VELOCITY: 1,
   DURATION: 150,
   ATTACK: 5
 }
 
-function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
+function Nuclear (canvas, x, y, offsetY, imgAlive, imgExplosion) {
   // default
   this.ctx = canvas.getContext('2d')
   this.x = x
   this.y = y
-  this.offsetX = offsetX
   this.offsetY = offsetY
   this.imgAlive = imgAlive
   this.imgExplosion = imgExplosion
+  // limit
+  this.minY = 0
+  this.maxY = canvas.height
   // init
   this.hp = NuclearConsts.HP
   this.duration = NuclearConsts.DURATION
@@ -23,8 +25,14 @@ function Nuclear (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.show = true
 }
 
+Nuclear.prototype.release = function () {
+  this.ctx = null
+  this.imgAlive = null
+  this.imgExplosion = null
+}
+
 Nuclear.prototype.draw = function () {
-  let imgTarget
+  var imgTarget
   if (!this.alive) {
     imgTarget = this.imgExplosion
     this.duration--
@@ -39,11 +47,8 @@ Nuclear.prototype.draw = function () {
 
 Nuclear.prototype.updateCoord = function () {
   if (!this.alive) return
-  this.x += NuclearConsts.VELOCITY * this.offsetX
   this.y += NuclearConsts.VELOCITY * this.offsetY
-  if (this.x + this.imgAlive.width / 2 < this.minX ||
-    this.x - this.imgAlive.width / 2 > this.maxX ||
-    this.y + this.imgAlive.height / 2 < this.minY ||
+  if (this.y + this.imgAlive.height / 2 < this.minY ||
     this.y - this.imgAlive.height / 2 > this.maxY) {
     this.show = false
   }
@@ -55,18 +60,12 @@ Nuclear.prototype.updateHp = function (hp) {
     if (this.hp <= 0) {
       this.hp = 0
       this.alive = false
-    } else if (this.hp > NuclearConsts.HP) {
-      this.hp = NuclearConsts.HP
     }
   }
 }
 
 Nuclear.prototype.getImg = function () {
-  if (this.alive) {
-    return this.imgAlive
-  } else {
-    return this.imgExplosion
-  }
+  return this.alive ? this.imgAlive : this.imgExplosion
 }
 
 Nuclear.prototype.detonate = function () {

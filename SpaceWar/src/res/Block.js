@@ -27,8 +27,14 @@ function Block (canvas, x, y, offsetX, offsetY, imgAlive, imgExplosion) {
   this.show = true
 }
 
+Block.prototype.release = function () {
+  this.ctx = null
+  this.imgAlive = null
+  this.imgExplosion = null
+}
+
 Block.prototype.draw = function () {
-  let imgTarget
+  var imgTarget
   if (!this.alive) {
     imgTarget = this.imgExplosion
     this.duration--
@@ -59,19 +65,13 @@ Block.prototype.updateHp = function (hp) {
       this.hp = 0
       this.alive = false
       return true
-    } else if (this.hp > BlockConsts.HP) {
-      this.hp = BlockConsts.HP
     }
   }
   return false
 }
 
 Block.prototype.getImg = function () {
-  if (this.alive) {
-    return this.imgAlive
-  } else {
-    return this.imgExplosion
-  }
+  return this.alive ? this.imgAlive : this.imgExplosion
 }
 
 export default {

@@ -24,6 +24,10 @@ function Bullet (canvas, x, y, offsetX, offsetY, color) {
   this.show = true
 }
 
+Bullet.prototype.release = function () {
+  this.ctx = null
+}
+
 Bullet.prototype.draw = function () {
   this.ctx.beginPath()
   this.ctx.fillStyle = this.color
