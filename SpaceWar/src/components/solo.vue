@@ -319,6 +319,18 @@ export default {
         alert('The version of your browser is too low.')
       }
     },
+    dettachListener: function () {
+      document.getElementById('button_home').onclick = null
+      document.getElementById('button_help').onclick = null
+      document.getElementById('button_restart').onclick = null
+      if (typeof window.addEventListener !== 'undefined') {
+        window.removeEventListener('resize', this.reload)
+        window.removeEventListener('keydown', this.onKeydown)
+        window.removeEventListener('keyup', this.onKeyup)
+      } else {
+        alert('The version of your browser is too low.')
+      }
+    },
     onKeydown: function (e) {
       if (this.gameState !== mGame.GameState.RUN && this.gameState !== mGame.GameState.PAUSE) return
       // 兼容Firefox
@@ -382,7 +394,7 @@ export default {
     },
     /** Resource Loader */
     createPlayer: function () {
-      var player = new mPlayer.Player(
+      return new mPlayer.Player(
         this.canvas,
         this.screenWidth / 2,
         this.screenHeight - this.imgPlayer.height / 2,
@@ -391,10 +403,9 @@ export default {
         this.imgLaser,
         this.imgShield
       )
-      return player
     },
     createPlayerBullet: function () {
-      var bullet = new mBullet.Bullet(
+      return new mBullet.Bullet(
         this.canvas,
         this.player.x,
         this.player.y - this.player.getImg().height / 2,
@@ -402,10 +413,9 @@ export default {
         -1,
         mBullet.BulletConsts.COLOR1
       )
-      return bullet
     },
     createEnemyBullet: function (enemy) {
-      var bullet = new mBullet.Bullet(
+      return new mBullet.Bullet(
         this.canvas,
         enemy.x,
         enemy.y + enemy.getImg().height / 2,
@@ -413,7 +423,6 @@ export default {
         0.1,
         mBullet.BulletConsts.COLOR2
       )
-      return bullet
     },
     cerateRandomEnemy: function () {
       let randomX = this.screenWidth * Math.random()
@@ -421,7 +430,7 @@ export default {
       let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 0.5
       let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.25
       let randomNum = Math.floor(this.countEnemy * Math.random())
-      var enemy = new mEnemy.Enemy(
+      return new mEnemy.Enemy(
         this.canvas,
         randomX,
         randomY,
@@ -430,7 +439,6 @@ export default {
         this.imgsEnemy[randomNum],
         this.imgExplosion
       )
-      return enemy
     },
     cerateRandomBoss: function () {
       let randomX = this.screenWidth * Math.random()
@@ -438,7 +446,7 @@ export default {
       let randomDx = Math.sin(2 * Math.PI * Math.random()) / 5 + 0.5
       let randomDy = Math.cos(2 * Math.PI * Math.random()) / 5 + 0.3
       let randomNum = Math.floor(this.countBoss * Math.random())
-      var boss = new mBoss.Boss(
+      return new mBoss.Boss(
         this.canvas,
         randomX,
         randomY,
@@ -447,13 +455,12 @@ export default {
         this.imgsBoss[randomNum],
         this.imgExplosion
       )
-      return boss
     },
     cerateRandomBlock: function () {
       let randomX = this.screenWidth * Math.random()
       let randomY = 20 * Math.random() - 100
       let randomNum = Math.floor(this.countBlock * Math.random())
-      var block = new mBlock.Block(
+      return new mBlock.Block(
         this.canvas,
         randomX,
         randomY,
@@ -462,10 +469,9 @@ export default {
         this.imgsBlock[randomNum],
         this.imgExplosion
       )
-      return block
     },
     createNuclear: function () {
-      var nuclear = new mNuclear.Nuclear(
+      return new mNuclear.Nuclear(
         this.canvas,
         this.player.x,
         this.player.y,
@@ -473,7 +479,6 @@ export default {
         this.imgNuclear,
         this.imgNuclearExplosion
       )
-      return nuclear
     },
     /** Draw */
     loop: function () {
@@ -861,6 +866,7 @@ export default {
     },
     /** Menu */
     onHome: function () {
+      this.dettachListener()
       this.clear()
       this.$router.push('/')
     },

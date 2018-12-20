@@ -7,8 +7,8 @@
     </canvas>
 
     <div class="div_progress">
-      <Progress class="progress_hp" :percent="hp2" :stroke-width="10" />
-      <Progress class="progress_hp" :percent="hp1" :stroke-width="10" />
+      <Progress class="progress_hp" :percent="binderHp2" :stroke-width="10" />
+      <Progress class="progress_hp" :percent="binderHp1" :stroke-width="10" />
     </div>
 
     <comMenu></comMenu>
@@ -56,28 +56,35 @@ export default {
   },
   data () {
     return {
+      /** Env */
       canvas: null,
       ctx: null,
       screenWidth: 0,
       screenHeight: 0,
-      hp1: 0,
-      hp2: 0,
+      /** Binder */
+      binderHp1: 0,
+      binderHp2: 0,
+      /** Img */
       imgPlayer1: null,
       imgPlayer2: null,
       imgExplosion: null,
+      /** Src */
       player1: null,
       player2: null,
       bullets1: [],
       bullets2: [],
+      /** Flag */
       isShotting1: false,
       isShotting2: false,
-      handlerId: 0,
-      timeoutId: 0,
-      gameState: -1,
       alertPause: false,
       modalHelp: false,
       modalResult: false,
+      gameState: -1,
       playerWin: -1,
+      /** Handler */
+      animationIdLoop: 0,
+      timeoutIdStop: 0,
+      /** Table */
       colController: [
         {
           title: 'Operation',
@@ -129,9 +136,13 @@ export default {
     onPrepare: function () {
       if (this.gameState === mGame.GameState.CREATE) {
         this.prepareEnv()
+        this.prepareImg()
         this.prepareSrc()
         this.attachListener()
         this.modalHelp = true
+      } else {
+        this.prepareEnv()
+        this.prepareSrc()
       }
       this.gameState = mGame.GameState.PREPARE
     },
@@ -152,7 +163,6 @@ export default {
       this.isShotting2 = false
       this.player1.resetStates()
       this.player2.resetStates()
-      cancelAnimationFrame(this.handlerId)
       this.alertPause = true
       this.gameState = mGame.GameState.PAUSE
     },
@@ -161,52 +171,50 @@ export default {
       this.isShotting2 = false
       this.player1.resetStates()
       this.player2.resetStates()
-      this.timeoutId = setTimeout(() => {
-        cancelAnimationFrame(this.handlerId)
+      this.timeoutIdStop = setTimeout(() => {
+        this.clearGameTasks()
         this.gameState = mGame.GameState.STOP
         this.modalResult = true
       }, 2000)
     },
-    /** Custom */
+    /** Prepare */
     prepareEnv: function () {
       this.canvas = document.getElementById('canvas_game')
       this.ctx = this.canvas.getContext('2d')
       this.screenWidth = this.canvas.width = window.innerWidth
       this.screenHeight = this.canvas.height = window.innerHeight
     },
-    prepareSrc: function () {
+    prepareImg: function () {
       this.imgPlayer1 = document.getElementById('img_player1')
       this.imgPlayer2 = document.getElementById('img_player2')
       this.imgExplosion = document.getElementById('img_explosion')
-      this.player1 = new mPlayer.Player(
-        this.canvas,
-        this.screenWidth / 2,
-        this.screenHeight - this.imgPlayer1.height / 2,
-        this.imgPlayer1,
-        this.imgExplosion,
-        null,
-        null
-      )
-      this.player2 = new mPlayer.Player(
-        this.canvas,
-        this.screenWidth / 2,
-        this.imgPlayer2.height / 2,
-        this.imgPlayer2,
-        this.imgExplosion,
-        null,
-        null
-      )
-      this.hp1 = this.player1.hp
-      this.hp2 = this.player2.hp
+    },
+    prepareSrc: function () {
+      this.player1 = this.createPlayer(this.screenHeight - this.imgPlayer1.height / 2, this.imgPlayer1)
+      this.player2 = this.createPlayer(this.imgPlayer2.height / 2, this.imgPlayer2)
+      this.binderHp1 = this.player1.hp
+      this.binderHp2 = this.player2.hp
     },
     attachListener: function () {
       document.getElementById('button_home').onclick = this.onHome
       document.getElementById('button_help').onclick = this.onHelp
-      document.getElementById('button_restart').onclick = this.restart
+      document.getElementById('button_restart').onclick = this.reload
       if (typeof window.addEventListener !== 'undefined') {
         window.addEventListener('resize', this.reload)
         window.addEventListener('keydown', this.onKeydown)
         window.addEventListener('keyup', this.onKeyup)
+      } else {
+        alert('The version of your browser is too low.')
+      }
+    },
+    dettachListener: function () {
+      document.getElementById('button_home').onclick = null
+      document.getElementById('button_help').onclick = null
+      document.getElementById('button_restart').onclick = null
+      if (typeof window.addEventListener !== 'undefined') {
+        window.removeEventListener('resize', this.reload)
+        window.removeEventListener('keydown', this.onKeydown)
+        window.removeEventListener('keyup', this.onKeyup)
       } else {
         alert('The version of your browser is too low.')
       }
@@ -292,78 +300,111 @@ export default {
           break
       }
     },
+    /** Resource Loader */
+    createPlayer: function (y, imgPlayer) {
+      return new mPlayer.Player(
+        this.canvas,
+        this.screenWidth / 2,
+        y,
+        imgPlayer,
+        this.imgExplosion,
+        null,
+        null
+      )
+    },
+    createPlayerBullet: function (x, y, dy, color) {
+      return new mBullet.Bullet(
+        this.canvas,
+        x,
+        y,
+        0,
+        dy,
+        color
+      )
+    },
+    /** Draw */
     loop: function () {
       if (this.gameState !== mGame.GameState.RUN) return
       this.ctx.clearRect(0, 0, this.screenWidth, this.screenHeight)
-      this.player1.updateCoord()
-      this.player2.updateCoord()
-      this.player1.draw()
-      this.player2.draw()
-      this.onShot()
-      this.onBullets()
-      this.handlerId = requestAnimationFrame(this.loop)
+      this.loopPlayerSrc()
+      this.loopPlayerAttack()
+      this.animationIdLoop = requestAnimationFrame(this.loop)
     },
-    onShot: function () {
-      if (this.hp1 > 0 && this.isShotting1 && this.bullets1.length < mBullet.BulletConsts.MAX_COUNT) {
-        var bullet1 = new mBullet.Bullet(
-          this.canvas,
+    loopPlayerSrc: function () {
+      /** Player 1 */
+      if (this.player1 !== null) {
+        this.player1.updateCoord()
+        this.player1.draw()
+      }
+      if (this.binderHp1 > 0 &&
+        this.isShotting1 &&
+        this.bullets1.length < mBullet.BulletConsts.MAX_COUNT) {
+        var bullet1 = this.createPlayerBullet(
           this.player1.x,
           this.player1.y - this.player1.getImg().height / 2,
-          0,
           -1,
           mBullet.BulletConsts.COLOR1
         )
         this.bullets1.push(bullet1)
       }
-      if (this.hp2 > 0 && this.isShotting2 && this.bullets2.length < mBullet.BulletConsts.MAX_COUNT) {
-        var bullet2 = new mBullet.Bullet(
-          this.canvas,
+      /** Player 2 */
+      if (this.player2 !== null) {
+        this.player2.updateCoord()
+        this.player2.draw()
+      }
+      if (this.binderHp2 > 0 &&
+        this.isShotting2 &&
+        this.bullets2.length < mBullet.BulletConsts.MAX_COUNT) {
+        var bullet2 = this.createPlayerBullet(
           this.player2.x,
           this.player2.y + this.player2.getImg().height / 2,
-          0,
           1,
           mBullet.BulletConsts.COLOR2
         )
         this.bullets2.push(bullet2)
       }
     },
-    onBullets: function () {
+    loopPlayerAttack: function () {
+      /** Bullet 1 */
       for (var i = this.bullets1.length - 1; i >= 0; i--) {
-        if (this.bullets1[i].show === true) {
+        if (this.bullets1[i].show) {
           this.bullets1[i].updateCoord()
           this.bullets1[i].draw()
-          if (this.checkCollision(this.player2, this.bullets1[i])) {
+          if (this.checkCollision(this.player2, this.bullets1[i], mBullet.BulletConsts.SIZE)) {
             this.bullets1[i].show = false
-            this.hp2 = this.updateHp(this.player2, 0 - mBullet.BulletConsts.ATTACK, 1)
+            this.binderHp2 = this.updateHp(this.player2, 0 - mBullet.BulletConsts.ATTACK, 1)
           }
         } else {
-          this.bullets1[i].disappear()
+          this.bullets1[i].release()
           this.bullets1.splice(i, 1)
         }
       }
+      /** Bullet 2 */
       for (var j = this.bullets2.length - 1; j >= 0; j--) {
-        if (this.bullets2[j].show === true) {
+        if (this.bullets2[j].show) {
           this.bullets2[j].updateCoord()
           this.bullets2[j].draw()
-          if (this.checkCollision(this.player1, this.bullets2[j])) {
+          if (this.checkCollision(this.player1, this.bullets2[j], mBullet.BulletConsts.SIZE)) {
             this.bullets2[j].show = false
-            this.hp1 = this.updateHp(this.player1, 0 - mBullet.BulletConsts.ATTACK, 2)
+            this.binderHp1 = this.updateHp(this.player1, 0 - mBullet.BulletConsts.ATTACK, 2)
           }
         } else {
-          this.bullets2[j].disappear()
+          this.bullets2[j].release()
           this.bullets2.splice(j, 1)
         }
       }
     },
-    checkCollision: function (player, bullet) {
-      let distance = (player.getImg().width + mBullet.BulletConsts.SIZE) / 2
-      let deltaX = player.x - bullet.x
-      let deltaY = player.y - bullet.y
-      if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) > Math.pow(distance, 2)) {
-        return false
-      } else {
-        return true
-      }
+    /** Task Scheduler */
+    clearGameTasks: function () {
+      cancelAnimationFrame(this.animationIdLoop)
+      clearInterval(this.timeoutIdStop)
+    },
+    /** Game Helper */
+    checkCollision: function (target, bullet, size) {
+      let distance = (target.getImg().height + size) / 2
+      let deltaX = target.x - bullet.x
+      let deltaY = target.y - bullet.y
+      return Math.pow(deltaX, 2) + Math.pow(deltaY, 2) <= Math.pow(distance, 2)
     },
     updateHp: function (player, hp, winner) {
       if (!player.alive) return
@@ -374,6 +415,7 @@ export default {
       }
       return player.hp
     },
+    /** Game Event */
     changeState: function () {
       if (this.gameState === mGame.GameState.PAUSE) {
         this.onResume()
@@ -381,8 +423,43 @@ export default {
         this.onPause()
       }
     },
+    clear: function () {
+      this.gameState = mGame.GameState.STOP
+      /** Handler */
+      this.clearGameTasks()
+      /** Flag */
+      this.isShotting1 = false
+      this.isShotting2 = false
+      /** Src */
+      if (this.player1 !== null) {
+        this.player1.release()
+        this.player1 = null
+      }
+      if (this.player2 !== null) {
+        this.player2.release()
+        this.player2 = null
+      }
+      for (var i = 0; i < this.bullets1.length; i++) {
+        this.bullets1[i].release()
+      }
+      this.bullets1 = []
+      for (var j = 0; j < this.bullets2.length; j++) {
+        this.bullets2[j].release()
+      }
+      this.bullets2 = []
+      /** Env */
+      this.canvas = null
+      this.ctx = null
+    },
+    reload: function () {
+      this.clear()
+      this.onPrepare()
+      this.onStart()
+    },
+    /** Menu */
     onHome: function () {
-      this.reset()
+      this.dettachListener()
+      this.clear()
       this.$router.push('/')
     },
     onHelp: function () {
@@ -392,38 +469,10 @@ export default {
     onResult: function (result) {
       this.modalResult = false
       if (result) {
-        this.restart()
+        this.reload()
       } else {
         this.onResume()
       }
-    },
-    restart: function () {
-      this.reset()
-      this.onResume()
-    },
-    reset: function () {
-      this.gameState = mGame.GameState.STOP
-      cancelAnimationFrame(this.handlerId)
-      clearTimeout(this.timeoutId)
-      this.player1.resetCoord()
-      this.player2.resetCoord()
-      this.player1.resetSource()
-      this.player2.resetSource()
-      this.hp1 = this.player1.hp
-      this.hp2 = this.player2.hp
-      for (var i = 0; i < this.bullets1.length; i++) {
-        this.bullets1[i].disappear()
-      }
-      this.bullets1 = []
-      for (var j = 0; j < this.bullets2.length; j++) {
-        this.bullets2[j].disappear()
-      }
-      this.bullets2 = []
-    },
-    reload: function () {
-      this.reset()
-      this.onPrepare()
-      this.onStart()
     }
   }
 }
