@@ -42,9 +42,9 @@
 ---
 ## 立即体验
 
-[SpaceWar online](https://frogfans.github.io/res/html/SpaceWar/index.html#/)
+[SpaceWar online](https://universezy.github.io/demo/SpaceWar/index.html#/)
 
 ---
 ## 反馈
 
-如果你有好的建议或问题反馈，请[告诉我](https://github.com/frogfans/SpaceWar-Web/issues)
+如果你有好的建议或问题反馈，请[告诉我](https://github.com/universezy/SpaceWar-Web/issues)
