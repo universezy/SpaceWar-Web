@@ -7,14 +7,14 @@
 ---
 ## 游戏-主页
 
-![](/image/home.jpg)
+![](image/home.jpg)
 
 - 点击底部footer可以跳转到该游戏github工程
 
 ---
 ## 游戏-单人挑战模式
 
-![](/image/help.jpg)
+![](image/help.jpg)
 
 - 进入该页面时会有游戏规则提示
 
